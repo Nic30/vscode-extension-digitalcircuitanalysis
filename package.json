@@ -1,14 +1,14 @@
 {
-	"name": "cat-customs",
-	"displayName": "Cat Customs",
-	"description": "Custom Editor API Samples",
+	"name": "vscode-extension-digitalcircuitanalysis",
+	"displayName": "Digital circuit analysis viewer",
+	"description": "Viewer for digital circuit analysis files (scheduling, schemes)",
 	"version": "0.0.1",
-	"publisher": "vscode-samples",
-	"private": true,
+	"publisher": "nic30",
+	"private": false,
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Microsoft/vscode-extension-samples"
+		"url": "https://github.com/nic30/vscode-extension-digitalcircuitanalysis"
 	},
 	"engines": {
 		"vscode": "^1.65.0"
@@ -17,52 +17,56 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCustomEditor:catCustoms.catScratch",
-		"onCustomEditor:catCustoms.pawDraw",
-		"onCommand:catCustoms.pawDraw.new"
+		"onCustomEditor:digitalcircuitanalysis.hwscheduling",
+		"onCustomEditor:digitalcircuitanalysis.hwschematic"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"customEditors": [
 			{
-				"viewType": "catCustoms.catScratch",
-				"displayName": "Cat Scratch",
+				"viewType": "digitalcircuitanalysis.hwscheduling",
+				"displayName": "D3 hwscheduling",
 				"selector": [
 					{
-						"filenamePattern": "*.cscratch"
+						"filenamePattern": "*.hwschedule.json"
 					}
 				]
 			},
 			{
-				"viewType": "catCustoms.pawDraw",
-				"displayName": "Paw Draw",
+				"viewType": "digitalcircuitanalysis.hwschematic",
+				"displayName": "D3 hwshcematic",
 				"selector": [
 					{
-						"filenamePattern": "*.pawdraw"
+						"filenamePattern": "*.hwscheme.json"
 					}
 				]
-			}
-		],
-		"commands": [
-			{
-				"command": "catCustoms.pawDraw.new",
-				"title": "Create new Paw Draw Document",
-				"category": "Paw Draw"
 			}
 		]
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
+		"vscode:prepublish": "npm run build",
+		"build": "rollup -c rollup.config.js",
+		"compile": "npm run build",
 		"lint": "eslint . --ext .ts,.tsx",
 		"watch": "tsc -w -p ./"
 	},
+	"dependencies": {
+		"@types/d3": "^7.4.0",
+		"d3": "^7.6.1",
+		"d3-hwschedulinggraphs": "^0.0.2",
+		"d3-hwschematic": "^0.1.6",
+		"elkjs": "^0.8.2"
+	},
 	"devDependencies": {
+		"@rollup/plugin-typescript": "^8.5.0",
 		"@types/node": "^16.11.7",
 		"@types/vscode": "^1.65.0",
 		"@typescript-eslint/eslint-plugin": "^5.30.0",
 		"@typescript-eslint/parser": "^5.30.0",
 		"eslint": "^8.13.0",
+		"rimraf": "^3.0.2",
+		"rollup": "^2.79.1",
+		"rollup-plugin-copy": "^3.4.0",
 		"typescript": "^4.8.4"
 	}
 }

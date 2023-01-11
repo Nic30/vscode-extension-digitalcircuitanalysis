@@ -1,0 +1,10 @@
+node_modules/*
+out/*
+media/*
+
+# IDE files
+.project
+.settings/*
+
+.externalToolBuilders/*
+
