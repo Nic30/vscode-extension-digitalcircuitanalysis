@@ -8,9 +8,10 @@
 - `F5` to start debugging
 
 
-Based on https://github.com/microsoft/vscode-extension-samples/tree/main/custom-editor-sample
-https://github.com/inosik/fable-vscode-rollup-sample
-https://code.visualstudio.com/api/working-with-extensions/publishing-extension
+### Based on:
+* https://github.com/microsoft/vscode-extension-samples/tree/main/custom-editor-sample
+* https://github.com/inosik/fable-vscode-rollup-sample
+* https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 
 
 ### How to debug
