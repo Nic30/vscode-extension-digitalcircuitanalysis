@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2020",                          
+    "module": "esnext",
+    "moduleResolution": "node",                     
+    "noEmitOnError": true,
+    "lib": ["es2020", "dom"],                            
+    "strict": true,  
+    "esModuleInterop": false,                 
+    "outDir": "../../out/media",
+    "rootDir": "./",
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true
+  }
+}
