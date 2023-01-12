@@ -2,37 +2,13 @@ import * as d3 from 'd3';
 //import { HwSchedulingTimelineGraph } from 'd3-hwschedulinggraphs';
 //const HwSchedulingTimelineGraph = d3.HwSchedulingTimelineGraph;
 import { _vscode } from './vscodePlaceholder';
+import { setupRootSvgOnResize } from './setupRootSvgOnResize';
 export declare const vscode: _vscode;
 
-// schematic rendering script
-function viewport() {
-    let e: any = window,
-        a = 'inner';
-    if (!('innerWidth' in window)) {
-        a = 'client';
-        e = document.documentElement || document.body;
-    }
-    return {
-        width: e[a + 'Width'],
-        height: e[a + 'Height']
-    };
-}
-const svg = d3.select("#scheme-placeholder")
-    .attr("width", viewport().width)
-    .attr("height", viewport().height);
+const svg = d3.select("#scheme-placeholder");
 
-const orig: any = document.body.onresize;
-document.body.onresize = function (ev) {
-    if (orig)
-        orig(ev);
-
-    const w = viewport();
-    svg.attr("width", w.width);
-    svg.attr("height", w.height);
-};
-
+setupRootSvgOnResize(svg);
 const hwSchematic = new (d3 as any).HwSchematic(svg);
-
 const zoom = d3.zoom();
 zoom.on("zoom", function applyTransform(ev) {
     hwSchematic.root.attr("transform", ev.transform);

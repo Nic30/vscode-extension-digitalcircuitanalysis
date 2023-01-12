@@ -1,41 +1,19 @@
-import * as d3 from 'd3';
+ import * as d3 from 'd3';
 //import { HwSchedulingTimelineGraph } from 'd3-hwschedulinggraphs';
 //const HwSchedulingTimelineGraph = d3.HwSchedulingTimelineGraph;
 import { _vscode } from './vscodePlaceholder';
+import {VcdParser} from './vcdParser';
+import { setupRootSvgOnResize } from './setupRootSvgOnResize';
 export declare const vscode: _vscode;
 
-// schematic rendering script
-function viewport() {
-    let e: any = window,
-        a = 'inner';
-    if (!('innerWidth' in window)) {
-        a = 'client';
-        e = document.documentElement || document.body;
-    }
-    return {
-        width: e[a + 'Width'],
-        height: e[a + 'Height']
-    };
-}
-const svg = d3.select("#wave-placeholder")
-    .attr("width", viewport().width)
-    .attr("height", viewport().height);
 
-const orig: any = document.body.onresize;
-document.body.onresize = function (ev) {
-    if (orig)
-        orig(ev);
-
-    const w = viewport();
-    svg.attr("width", w.width);
-    svg.attr("height", w.height);
-};
-
+const svg = d3.select("#wave-placeholder");
+setupRootSvgOnResize(svg);
 const wave = new (d3 as any).WaveGraph(svg);
 
 const zoom = d3.zoom();
 zoom.on("zoom", function applyTransform(ev) {
-    wave.root.attr("transform", ev.transform);
+    wave.dataG.attr("transform", ev.transform);
 });
 
 // disable zoom on doubleclick
@@ -50,12 +28,19 @@ function updateContent(text: string) {
 	let json;
 	try {
 		if (!text) {
-			text = '{}';
+			json = {};
+		} else {
+			const vcdParser = new VcdParser();
+			vcdParser.parse_str(text);		
+			json = vcdParser.scope?.toJson();
 		}
-		json = JSON.parse(text);
-	} catch {
-		wave.setErrorText('Error: Document is not valid json');
-		return;
+	} catch (e) {
+		svg.append("text")
+	  	   .attr("transform", "translate(100, 100)")
+  	       .text('Error: Document is not valid vcd ' + e)
+  	       .attr('style', "fill:red;font-size:20px");
+  	    console.log(e);
+		throw e;
 	}
 	wave.bindData(json).then(
 		() => {},

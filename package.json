@@ -18,7 +18,8 @@
 	],
 	"activationEvents": [
 		"onCustomEditor:digitalcircuitanalysis.hwscheduling",
-		"onCustomEditor:digitalcircuitanalysis.hwschematic"
+		"onCustomEditor:digitalcircuitanalysis.hwschematic",
+		"onCustomEditor:digitalcircuitanalysis.wave"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -40,6 +41,15 @@
 						"filenamePattern": "*.hwscheme.json"
 					}
 				]
+			},
+			{
+				"viewType": "digitalcircuitanalysis.wave",
+				"displayName": "D3 wave",
+				"selector": [
+					{
+						"filenamePattern": "*.vcd"
+					}
+				]
 			}
 		]
 	},
@@ -55,6 +65,7 @@
 		"d3": "^7.6.1",
 		"d3-hwschedulinggraphs": "^0.0.2",
 		"d3-hwschematic": "^0.1.6",
+		"d3-wave": "^1.1.4",
 		"elkjs": "^0.8.2"
 	},
 	"devDependencies": {
