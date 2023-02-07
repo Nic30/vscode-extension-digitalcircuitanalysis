@@ -109,13 +109,11 @@ export class HwSchematicEditorProvider implements vscode.CustomTextEditorProvide
 		    <script type="text/javascript" src="${getAsset('d3-hwschematic.js')}" nonce="${nonce}"></script>
 		</head>
 		<body>
-			<div style="display: block; width: 100%; height: 100%;">
+		    <div style="display: block; width: 100%; height: 100%;">
 				<svg id="scheme-placeholder"></svg>
 			</div>
             <script type="text/javascript" src="${getAsset('hwschematic.js')}" nonce="${nonce}"></script>
 		</body>
 		</html>`;
 	}
-
-
 }

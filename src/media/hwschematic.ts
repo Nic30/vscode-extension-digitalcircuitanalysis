@@ -4,6 +4,9 @@ import * as d3 from 'd3';
 import { _vscode } from './vscodePlaceholder';
 import { setupRootSvgOnResize } from './setupRootSvgOnResize';
 export declare const vscode: _vscode;
+import { provideVSCodeDesignSystem, vsCodeButton, vsCodeCheckbox } from "@vscode/webview-ui-toolkit";
+
+provideVSCodeDesignSystem().register(vsCodeButton(), vsCodeCheckbox());
 
 const svg = d3.select("#scheme-placeholder");
 

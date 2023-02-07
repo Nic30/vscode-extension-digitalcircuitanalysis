@@ -1,5 +1,7 @@
 import typescript from '@rollup/plugin-typescript';
 import copy from 'rollup-plugin-copy'
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+
 const production = false; //!process.env.ROLLUP_WATCH
 
 const extensionConfig = {
@@ -59,25 +61,27 @@ const schemeViewerConfig = {
     output: {
         sourcemap: !production,
         format: 'umd',
+        //format: "iife",
         file: `media/hwschematic.js`,
         globals: {
             // lib name: name where lib exports itself on "window"
             'vscode': 'vscode',
             "d3": "d3",
             'd3-hwschematic': 'd3',
+            '@vscode/webview-ui-toolkit': 'webviewUiToolkit',
         },
         name: 'd3',
     },
     external: ['vscode', 'd3'],
     plugins: [
+		nodeResolve(),
         typescript({ sourceMap: !production, inlineSources: !production, tsconfig: "./src/media/tsconfig.hwschematic.json" }),
         copy({
            verbose: true,
            targets: [
              { src: 'node_modules/d3-hwschematic/dist/d3-hwschematic.js', dest: 'media/' },
-             { src: 'node_modules/d3-hwschematic/dist/d3-hwschematic.css', dest: 'media/' },
-             { src: 'node_modules/elkjs/lib/elk.bundled.js', dest: 'media/' }
-             
+             { src: 'src/media/d3-hwschematic-dark.css', dest: 'media/' },
+             { src: 'node_modules/elkjs/lib/elk.bundled.js', dest: 'media/' },
         ]})
     ]
 };

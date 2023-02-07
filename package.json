@@ -61,7 +61,9 @@
 		"watch": "tsc -w -p ./"
 	},
 	"dependencies": {
+		"@rollup/plugin-node-resolve": "^15.0.1",
 		"@types/d3": "^7.4.0",
+		"@vscode/webview-ui-toolkit": "^1.2.1",
 		"d3": "^7.6.1",
 		"d3-hwschedulinggraphs": "^0.0.2",
 		"d3-hwschematic": "^0.1.6",
