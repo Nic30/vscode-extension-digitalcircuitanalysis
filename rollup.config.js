@@ -82,6 +82,8 @@ const schemeViewerConfig = {
              { src: 'node_modules/d3-hwschematic/dist/d3-hwschematic.js', dest: 'media/' },
              { src: 'src/media/d3-hwschematic-dark.css', dest: 'media/' },
              { src: 'node_modules/elkjs/lib/elk.bundled.js', dest: 'media/' },
+             { src: 'node_modules/@vscode/codicons/dist/codicon.css', dest: 'media/' },
+             { src: 'node_modules/@vscode/codicons/dist/codicon.ttf', dest: 'media/' },
         ]})
     ]
 };

@@ -4,9 +4,9 @@ import * as d3 from 'd3';
 import { _vscode } from './vscodePlaceholder';
 import { setupRootSvgOnResize } from './setupRootSvgOnResize';
 export declare const vscode: _vscode;
-import { provideVSCodeDesignSystem, vsCodeButton, vsCodeCheckbox } from "@vscode/webview-ui-toolkit";
+import { provideVSCodeDesignSystem, vsCodeButton, vsCodeCheckbox, vsCodePanels, vsCodePanelTab, vsCodePanelView, vsCodeRadio, vsCodeRadioGroup, vsCodeTextField } from "@vscode/webview-ui-toolkit";
 
-provideVSCodeDesignSystem().register(vsCodeButton(), vsCodeCheckbox());
+provideVSCodeDesignSystem().register(vsCodeButton(), vsCodeCheckbox(), vsCodePanels(), vsCodePanelTab(), vsCodePanelView(), vsCodeRadio(), vsCodeRadioGroup(), vsCodeTextField());
 
 const svg = d3.select("#scheme-placeholder");
 
