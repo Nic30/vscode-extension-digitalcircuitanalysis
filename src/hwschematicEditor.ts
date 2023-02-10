@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { findWidgetHtml } from './findWidget';
+import * as fw from './findWidget';
 import { getNonce } from './util';
 
 export class HwSchematicEditorProvider implements vscode.CustomTextEditorProvider {
@@ -111,8 +111,9 @@ export class HwSchematicEditorProvider implements vscode.CustomTextEditorProvide
 		    <script type="text/javascript" src="${getAsset('d3.min.js')}" nonce="${nonce}"></script>
 		    <script type="text/javascript" src="${getAsset('d3-hwschematic.js')}" nonce="${nonce}"></script>
 		</head>
-		<body>
-			${findWidgetHtml()}
+		${fw.findWidgetFunctionsHtml()}
+		<body onkeypress="WidgetControl(event);">
+			${fw.findWidgetHtml()}
 		    <div style="display: block; width: 100%; height: 100%;">
 				<svg id="scheme-placeholder"></svg>
 			</div>
