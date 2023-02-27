@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { getNonce } from './util';
+import { findWidgetHtml } from './findWidgetElement';
 
 /**
  * This provider demonstrates:
@@ -13,7 +14,7 @@ export class HwSchedulingEditorProvider implements vscode.CustomTextEditorProvid
 	public static register(context: vscode.ExtensionContext): vscode.Disposable {
 		const provider = new HwSchedulingEditorProvider(context);
 		const providerRegistration = vscode.window.registerCustomEditorProvider(HwSchedulingEditorProvider.viewType, provider,
-				{webviewOptions: {enableFindWidget: true}});
+			{});
 		return providerRegistration;
 	}
 
@@ -105,7 +106,8 @@ export class HwSchedulingEditorProvider implements vscode.CustomTextEditorProvid
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		    <link href="${getAsset('reset.css')}" rel="stylesheet" />
 		    <link href="${getAsset('vscode.css')}" rel="stylesheet" />
-		    <link href="${getAsset('hwscheduling.css')}" rel="stylesheet" />			
+		    <link href="${getAsset('hwscheduling.css')}" rel="stylesheet" />
+			<link href="${getAsset('codicon.css')}" rel="stylesheet" />				
             <script type="text/javascript" nonce="${nonce}">
                     const vscode = acquireVsCodeApi();
 					window.onload = function() {
@@ -118,6 +120,7 @@ export class HwSchedulingEditorProvider implements vscode.CustomTextEditorProvid
 
 		</head>
 		<body>
+			${findWidgetHtml()}
 			<div id="timelineGraphContainer"
 				style="display: block; width: 100%; height: 100%;"></div>
             <script type="text/javascript" src="${getAsset('hwscheduling.js')}" nonce="${nonce}"></script>
