@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as fw from './findWidget';
+import { findWidgetHtml } from './findWidgetElement';
 import { getNonce } from './util';
 
 export class HwSchematicEditorProvider implements vscode.CustomTextEditorProvider {
@@ -80,7 +80,6 @@ export class HwSchematicEditorProvider implements vscode.CustomTextEditorProvide
 
 		// Use a nonce to whitelist which scripts can be run
 		const nonce = getNonce();
-		const codiconsUri = getAsset('codicon.css');
 
 		return /* html */`
 		<!DOCTYPE html>
@@ -99,7 +98,7 @@ export class HwSchematicEditorProvider implements vscode.CustomTextEditorProvide
 		    <link href="${getAsset('reset.css')}" rel="stylesheet" />
 		    <link href="${getAsset('vscode.css')}" rel="stylesheet" />
 		    <link href="${getAsset('d3-hwschematic-dark.css')}" rel="stylesheet" />	
-			<link href="${codiconsUri}" rel="stylesheet" />		
+			<link href="${getAsset('codicon.css')}" rel="stylesheet" />		
             <script type="text/javascript" nonce="${nonce}">
                     const vscode = acquireVsCodeApi();
 					window.onload = function() {
@@ -111,9 +110,8 @@ export class HwSchematicEditorProvider implements vscode.CustomTextEditorProvide
 		    <script type="text/javascript" src="${getAsset('d3.min.js')}" nonce="${nonce}"></script>
 		    <script type="text/javascript" src="${getAsset('d3-hwschematic.js')}" nonce="${nonce}"></script>
 		</head>
-		${fw.findWidgetFunctionsHtml()}
 		<body onkeypress="WidgetControl(event);">
-			${fw.findWidgetHtml()}
+			${findWidgetHtml()}
 		    <div style="display: block; width: 100%; height: 100%;">
 				<svg id="scheme-placeholder"></svg>
 			</div>
