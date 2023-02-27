@@ -1,5 +1,5 @@
 import typescript from '@rollup/plugin-typescript';
-import copy from 'rollup-plugin-copy'
+import copy from 'rollup-plugin-copy';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 const production = false; //!process.env.ROLLUP_WATCH
@@ -39,20 +39,22 @@ const schedulingViewerConfig = {
     },
     external: ['vscode', 'd3'],
     plugins: [
+        nodeResolve(),
         typescript({ sourceMap: !production, inlineSources: !production, tsconfig: "./src/media/tsconfig.hwscheduling.json" }),
         copy({
-           verbose: true,
-           targets: [
-             { src: 'node_modules/d3/dist/d3.min.js', dest: 'media/' },
-             { src: 'node_modules/d3-hwschedulinggraphs/dist/d3-hwschedulinggraphs.js', dest: 'media/' },
-             { src: 'src/media/hwscheduling.css', dest: 'media/' },
-             { src: 'src/media/reset.css', dest: 'media/' },
-             { src: 'src/media/vscode.css', dest: 'media/' },
-             
-             { src: 'node_modules/d3-hwschematic/dist/d3-hwschematic.js', dest: 'media/' },
-             { src: 'node_modules/elkjs/lib/elk.bundled.js', dest: 'media/'},
-             { src: 'node_modules/d3-hwschematic/dist/d3-hwschematic-dark.css', dest: 'media/' }
-        ]})
+            verbose: true,
+            targets: [
+                { src: 'node_modules/d3/dist/d3.min.js', dest: 'media/' },
+                { src: 'node_modules/d3-hwschedulinggraphs/dist/d3-hwschedulinggraphs.js', dest: 'media/' },
+                { src: 'src/media/hwscheduling.css', dest: 'media/' },
+                { src: 'src/media/reset.css', dest: 'media/' },
+                { src: 'src/media/vscode.css', dest: 'media/' },
+
+                { src: 'node_modules/d3-hwschematic/dist/d3-hwschematic.js', dest: 'media/' },
+                { src: 'node_modules/elkjs/lib/elk.bundled.js', dest: 'media/' },
+                { src: 'node_modules/d3-hwschematic/dist/d3-hwschematic-dark.css', dest: 'media/' }
+            ]
+        })
     ]
 };
 
@@ -74,17 +76,18 @@ const schemeViewerConfig = {
     },
     external: ['vscode', 'd3'],
     plugins: [
-		nodeResolve(),
+        nodeResolve(),
         typescript({ sourceMap: !production, inlineSources: !production, tsconfig: "./src/media/tsconfig.hwschematic.json" }),
         copy({
-           verbose: true,
-           targets: [
-             { src: 'node_modules/d3-hwschematic/dist/d3-hwschematic.js', dest: 'media/' },
-             { src: 'src/media/d3-hwschematic-dark.css', dest: 'media/' },
-             { src: 'node_modules/elkjs/lib/elk.bundled.js', dest: 'media/' },
-             { src: 'node_modules/@vscode/codicons/dist/codicon.css', dest: 'media/' },
-             { src: 'node_modules/@vscode/codicons/dist/codicon.ttf', dest: 'media/' },
-        ]})
+            verbose: true,
+            targets: [
+                { src: 'node_modules/d3-hwschematic/dist/d3-hwschematic.js', dest: 'media/' },
+                { src: 'src/media/d3-hwschematic-dark.css', dest: 'media/' },
+                { src: 'node_modules/elkjs/lib/elk.bundled.js', dest: 'media/' },
+                { src: 'node_modules/@vscode/codicons/dist/codicon.css', dest: 'media/' },
+                { src: 'node_modules/@vscode/codicons/dist/codicon.ttf', dest: 'media/' },
+            ]
+        })
     ]
 };
 
@@ -107,12 +110,13 @@ const waveViewerConfig = {
     plugins: [
         typescript({ sourceMap: !production, inlineSources: !production, tsconfig: "./src/media/tsconfig.wave.json" }),
         copy({
-           verbose: true,
-           targets: [
-             { src: 'node_modules/d3-wave/dist/d3-wave.js', dest: 'media/' },
-             { src: 'node_modules/@fortawesome/free-solid-svg-icons/index.js', dest: 'media/@fortawesome/free-solid-svg-icons/' },
-             
-        ]})
+            verbose: true,
+            targets: [
+                { src: 'node_modules/d3-wave/dist/d3-wave.js', dest: 'media/' },
+                { src: 'node_modules/@fortawesome/free-solid-svg-icons/index.js', dest: 'media/@fortawesome/free-solid-svg-icons/' },
+
+            ]
+        })
     ]
 };
 
