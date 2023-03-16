@@ -80,7 +80,7 @@ export class VcdVarInfo {
     width: number|string;
     sigType:string;
     parent:VcdVarScope;
-    
+
     constructor(vcdId: string|VcdVarInfo, name: string, width:number|string, sigType:string, parent:VcdVarScope) {
         this.vcdId = vcdId;
         this.name = name;
@@ -110,13 +110,13 @@ export class VcdVarScope implements iJsonable {
         this.parent = parent;
         this.children = {};
     }
-   
+
     toJson() {
        const children: any[] = [];
        for (const ch of Object.values(this.children)) {
              children.push((ch as iJsonable).toJson());
        }
-        
+
         return {
             "name": this.name,
             "type": {"name": "struct"},
@@ -185,7 +185,7 @@ export class VcdParser {
     idcode2series: {[id:string]: [number, string][]};
     keyword_dispatch: {[keyword:string]: (tokeniser: Generator<[number, string]>, keyword:string)=>void};
     props: {[name:string]: string};
-    
+
     constructor() {
         this.keyword_dispatch = {
             // declaration_keyword ::=
@@ -228,7 +228,7 @@ export class VcdParser {
         /*push change from VCD file signal data series*/
         try {
             this.idcode2series[vcdId].push([this.now, value]);
-        } catch(Error) { 
+        } catch(Error) {
             this.on_error(lineNo, vcdId);
         }
     }
@@ -239,10 +239,10 @@ export class VcdParser {
            this.now = parseInt(value as string);  // TODO: can be float
        }
     }
-    
+
     *createTokeniser(vcdStr:string): Generator<[number, string]> {
         let lineNo = 0;
-        for (const line of vcdStr.split("\n")) {
+        for (const line of vcdStr.split(/\r\n|\n\r|\n|\r/)) {
             for (const word of line.split(" ")) {
                 if (!word)
                     continue;
@@ -277,10 +277,10 @@ export class VcdParser {
 
         for (;;) {
             const item = tokeniser.next();
-            if (item.done)               
+            if (item.done)
                   break;
             const [lineNo, token] = item.value;
-    
+
             // parse changes
             const c = token[0];
             if (c === '$') {
@@ -300,7 +300,7 @@ export class VcdParser {
         token = token.trim();
         if (!token)
             return;
-        
+
         let _;
         let value:string;
         let vcdId:string;
@@ -342,7 +342,7 @@ export class VcdParser {
             else
                 yield word;
 		}
-        
+
     }
     ltrim$(x:string) {
       // This implementation removes whitespace from the left side
@@ -429,7 +429,7 @@ export class VcdParser {
            if (item.done) {
                break;
            }
-           const [lineNo, token] = item.value; 
+           const [lineNo, token] = item.value;
            if (token && token[0] === "$") {
                if (token.startsWith("$end")) {
                    return;
