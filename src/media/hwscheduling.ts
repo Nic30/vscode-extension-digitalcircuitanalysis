@@ -20,27 +20,6 @@ errorContainer.style.display = 'none';
 
 /**
  * 
- * Creates dictionary of id to list of successor ids.
- * @param nodes To be searched
- * @return dictionary of id to list of successor ids
- */
-function getSuccessorDict(nodes: TimelineItemData[]) {
-	const dict: { [id: number]: number[] } = {};
-	for (const item of nodes){
-		dict[item.id] = [];
-	}
-	for (const item of nodes) {
-		for (const port of item.portsIn) {
-			const predecessorID = port[2];
-			const successorList = dict[predecessorID];
-			successorList.push(item.id);
-		}
-	}
-	return dict;
-}
-
-/**
- * 
  * Add the selected nodes to the left of startingNode to the selection of the timeline.
  * @param startingNode 
  * @param distance 
@@ -88,13 +67,11 @@ function addTimelineItemsRight(startingNode: TimelineItemData, distance: number,
  * @param formDataJSON 
  * @return 
  */
-function onAdd(formDataJSON: FindWidgetFormData) {
-	const lines = d3.selectAll(".hwscheduling-timeline-graph path");
+function onAddNode(formDataJSON: FindWidgetFormData) {
 	const bars = d3.selectAll(".hwscheduling-timeline-graph rect");
 	if (formDataJSON.searchValue == "" || timeline == null) { return; }
 	const searchValues = formDataJSON.searchValue.split(",");
-	let successorDict = {};
-	if (formDataJSON.directionRight) { successorDict = getSuccessorDict(timeline.data.data); }
+	const successorDict = timeline.idToSuccessorIds;
 	if(formDataJSON.idOrName == "Id"){
 		for (const searchValue of searchValues) {
 			const searchValueInt = parseInt(searchValue);
@@ -125,9 +102,9 @@ function onAdd(formDataJSON: FindWidgetFormData) {
 	}
 	
 	// Highlight the selected items
-	console.log(timeline.currentlySelected);
 	timeline.applyHighlight();
 }
+
 /**
  * Clear the selection of the timeline.
  */
@@ -137,8 +114,14 @@ function onClearSelection() {
 }
 
 
+function onAddPath(formDataJSON: FindWidgetFormData) {
+	const bars = d3.selectAll(".hwscheduling-timeline-graph rect");
+	throw new Error("Not implemented");
+}
 
-initializeFindWidget(document, onAdd, onClearSelection);
+
+
+initializeFindWidget(document, onAddNode, onAddPath, onClearSelection);
 
 /**
  * Render the document in the webview.

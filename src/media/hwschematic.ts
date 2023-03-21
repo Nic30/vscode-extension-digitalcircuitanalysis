@@ -20,13 +20,16 @@ zoom.on("zoom", function applyTransform(ev) {
 svg.call(zoom as any)
 	.on("dblclick.zoom", null);
 
-function onAdd(formData: FindWidgetFormData) {
+function onAddNode(formData: FindWidgetFormData) {
+	console.log("add", formData);
+}
+function onAddPath(formData: FindWidgetFormData) {
 	console.log("add", formData);
 }
 function onClearSelection() {
 	console.log("clear selection");
 }
-initializeFindWidget(document, onAdd, onClearSelection);
+initializeFindWidget(document, onAddNode, onAddPath, onClearSelection);
 
 
 /**

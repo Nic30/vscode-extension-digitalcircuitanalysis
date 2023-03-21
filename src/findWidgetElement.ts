@@ -38,7 +38,7 @@ export function findWidgetHtml() {
 							<vscode-button appearance="primary" title="Remove from selection">
 								<span class="codicon codicon-trash"></span>
 							</vscode-button>
-							<vscode-button onclick="digitalCircuitAnalysisOnFindWidgetOnAdd()" appearance="primary">
+							<vscode-button onclick="digitalCircuitAnalysisOnFindWidgetOnAddNode()" appearance="primary">
 								Add
 							</vscode-button>
 						</section>
@@ -46,30 +46,26 @@ export function findWidgetHtml() {
 				</vscode-panel-view>
 				<vscode-panel-view id="view-2" style="flex-direction: column;">
 					<section style="display:grid; grid-template-columns: 50% 50%; align-items: center;">
-						<vscode-text-field placeholder="Source" size="3" style="margin-right: 4px">
+						<vscode-text-field name="sourceID" placeholder="Source id" size="3" style="margin-right: 4px">
 						</vscode-text-field>
-						<vscode-text-field placeholder="Destination" size="3"">
+						<vscode-text-field name="destID" placeholder="Destination id" size="3"">
 						</vscode-text-field>
 					</section>
 					<section style="display:flex; align-items: center; justify-content: space-between;">
-						<vscode-radio-group orientation="vertical">
+						<vscode-radio-group orientation="horizontal" name="searchMethod">
 							<label slot="label"></label>
-							<vscode-radio>BFS</vscode-radio>
-							<vscode-radio>DFS</vscode-radio>
-						</vscode-radio-group>
-						<vscode-radio-group orientation="vertical">
-							<label slot="label"></label>
-							<vscode-radio>All</vscode-radio>
-							<vscode-radio>One</vscode-radio>
+							<vscode-radio value="all"checked>All</vscode-radio>
+							<vscode-radio value="BFS">BFS</vscode-radio>
+							<vscode-radio value="DFS">DFS</vscode-radio>
 						</vscode-radio-group>
 						<section style="float: right; align-items: center;">
-							<vscode-button appearance="primary" title="Clear selection">
+							<vscode-button onclick="digitalCircuitAnalysisOnFindWidgetOnClearSelection()" appearance="primary" title="Clear selection">
 								<span class="codicon codicon-clear-all"></span>
 							</vscode-button>
 							<vscode-button appearance="primary" title="Remove from selection">
 								<span class="codicon codicon-trash"></span>
 							</vscode-button>
-							<vscode-button appearance="primary">
+							<vscode-button onclick="digitalCircuitAnalysisOnFindWidgetOnAddPath()" appearance="primary">
 								Add
 							</vscode-button>
 						</section>
