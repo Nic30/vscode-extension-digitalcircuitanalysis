@@ -31,12 +31,12 @@ function updateContent(text: string) {
 			json = {};
 		} else {
 			const vcdParser = new VcdParser();
-			vcdParser.parse_str(text);		
+			vcdParser.parse_str(text);
 			json = vcdParser.scope?.toJson();
 		}
 	} catch (e) {
 		svg.append("text")
-	  	   .attr("transform", "translate(100, 100)")
+	   	   .attr("transform", "translate(100, 100)")
   	       .text('Error: Document is not valid vcd ' + e)
   	       .attr('style', "fill:red;font-size:20px");
   	    console.log(e);
@@ -56,8 +56,11 @@ window.addEventListener('message', (event) => {
 	switch (message.type) {
 		case 'update': {
 			const text = message.text;
-			// Update our webview's content
-			updateContent(text);
+			const state = vscode.getState();
+			if (!state || state.text != text) {
+				// Update our webview's content
+				updateContent(text);
+			}
 			// Then persist state information.
 			// This state is returned in the call to `vscode.getState` below when a webview is reloaded.
 			vscode.setState({ text });

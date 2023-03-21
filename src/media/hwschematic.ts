@@ -60,8 +60,11 @@ window.addEventListener('message', (event) => {
 	switch (message.type) {
 		case 'update': {
 			const text = message.text;
-			// Update our webview's content
-			updateContent(text);
+			const state = vscode.getState();
+			if (!state || state.text != text) {
+				// Update our webview's content
+				updateContent(text);
+			}
 			// Then persist state information.
 			// This state is returned in the call to `vscode.getState` below when a webview is reloaded.
 			vscode.setState({ text });

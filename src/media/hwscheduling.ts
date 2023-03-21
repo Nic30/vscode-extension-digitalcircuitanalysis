@@ -19,12 +19,12 @@ errorContainer.className = 'error';
 errorContainer.style.display = 'none';
 
 /**
- * 
+ *
  * Add the selected nodes to the left of startingNode to the selection of the timeline.
- * @param startingNode 
- * @param distance 
- * @param resultSelected 
- * @param idToDataDict 
+ * @param startingNode
+ * @param distance
+ * @param resultSelected
+ * @param idToDataDict
  */
 function addTimelineItemsLeft(startingNode: TimelineItemData, distance: number, resultSelected: Set<TimelineItemData>, idToDataDict: { [id: number]: TimelineItemData }) {
 	resultSelected.add(startingNode);
@@ -41,7 +41,7 @@ function addTimelineItemsLeft(startingNode: TimelineItemData, distance: number, 
 }
 
 /**
- * 
+ *
  * Add the selected nodes to the right of startingNode to the selection of the timeline.
  * @param startingNode Starting node to search from
  * @param distance Distance to search
@@ -62,10 +62,10 @@ function addTimelineItemsRight(startingNode: TimelineItemData, distance: number,
 }
 
 /**
- * 
+ *
  * Add the selected items to the selection of the timeline.
- * @param formDataJSON 
- * @return 
+ * @param formDataJSON
+ * @return
  */
 function onAddNode(formDataJSON: FindWidgetFormData) {
 	const bars = d3.selectAll(".hwscheduling-timeline-graph rect");
@@ -100,7 +100,7 @@ function onAddNode(formDataJSON: FindWidgetFormData) {
 			}
 		}
 	}
-	
+
 	// Highlight the selected items
 	timeline.applyHighlight();
 }
@@ -144,6 +144,10 @@ function updateContent(text: string) {
 	if (graphContainer !== null) {
 		graphContainer.style.display = '';
 
+		if (timeline) {
+			// remove old svg
+			d3.select(graphContainer).selectAll("*").remove();
+		}
 		timeline = new (d3 as any).HwSchedulingTimelineGraph(graphContainer as HTMLDivElement, json);
 		timeline.draw();
 	}
@@ -155,9 +159,11 @@ window.addEventListener('message', (event) => {
 	switch (message.type) {
 		case 'update': {
 			const text = message.text;
-
-			// Update our webview's content
-			updateContent(text);
+			const state = vscode.getState();
+			if (!state || state.text != text) {
+				// Update our webview's content
+				updateContent(text);
+			}
 
 			// Then persist state information.
 			// This state is returned in the call to `vscode.getState` below when a webview is reloaded.
