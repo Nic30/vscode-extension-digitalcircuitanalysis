@@ -1,4 +1,5 @@
 import { DocumentHighlight } from "vscode";
+
 export function findWidgetHtml() {
 	return /* html */`
 	<div class="overlayWidgets" style="position:fixed; right:8px;">
@@ -18,7 +19,7 @@ export function findWidgetHtml() {
 								</vscode-button>
 							</section>
 						</vscode-text-field>
-						<vscode-text-field name="distance" placeholder="Distance(1)" size="3"> 
+						<vscode-text-field name="distance" placeholder="Distance(1)" size="3">
 						</vscode-text-field>
 					</section>
 					<section style="display:flex; align-items: center; justify-content: space-between;">
@@ -70,7 +71,7 @@ export function findWidgetHtml() {
 							</vscode-button>
 						</section>
 					</section>
-				</vscode-panel-view>		
+				</vscode-panel-view>
 			</vscode-panels>
 		</form>
 	</div>

@@ -4,12 +4,9 @@ import * as d3 from 'd3';
 import { _vscode } from './vscodePlaceholder';
 export declare const vscode: _vscode;
 import { initializeFindWidget, FindWidgetFormData } from './findWidget';
-import { select } from 'd3';
+import { addTimelineItemsLeft, addTimelineItemsRight } from './hwschedulingFindWidget';
 import { TimelineItemData } from 'd3-hwschedulinggraphs/dist/data';
 import { HwSchedulingTimelineGraph } from 'd3-hwschedulinggraphs';
-import { deflateRaw } from 'zlib';
-
-
 
 const graphContainer = document.getElementById('timelineGraphContainer');
 const errorContainer = document.createElement('div');
@@ -18,89 +15,37 @@ document.body.appendChild(errorContainer);
 errorContainer.className = 'error';
 errorContainer.style.display = 'none';
 
-/**
- *
- * Add the selected nodes to the left of startingNode to the selection of the timeline.
- * @param startingNode
- * @param distance
- * @param resultSelected
- * @param idToDataDict
- */
-function addTimelineItemsLeft(startingNode: TimelineItemData, distance: number, resultSelected: Set<TimelineItemData>, idToDataDict: { [id: number]: TimelineItemData }) {
-	resultSelected.add(startingNode);
-	if (distance > 0) {
-		for (const port of startingNode.portsIn) {
-			const predecessorID = port[2];
-			const predecessor = idToDataDict[predecessorID];
-			if (!predecessor) {
-				throw new Error("Predecessor not found" + predecessorID);
-			}
-			addTimelineItemsLeft(predecessor, distance - 1, resultSelected, idToDataDict);
-		}
-	}
-}
 
 /**
- *
- * Add the selected nodes to the right of startingNode to the selection of the timeline.
- * @param startingNode Starting node to search from
- * @param distance Distance to search
- * @param resultSelected Set of selected nodes
- * @param idToDataDict Dictionary of id to node
- */
-function addTimelineItemsRight(startingNode: TimelineItemData, distance: number, resultSelected: Set<TimelineItemData>, idToDataDict: { [id: number]: TimelineItemData }, successorDict: { [id: number]: number[] }) {
-	resultSelected.add(startingNode);
-	if (distance > 0) {
-		for (const successorID of successorDict[startingNode.id]) {
-			const successor = idToDataDict[successorID];
-			if (!successor) {
-				throw new Error("Successor not found" + successorID);
-			}
-			addTimelineItemsRight(successor, distance - 1, resultSelected, idToDataDict, successorDict);
-		}
-	}
-}
-
-/**
- *
  * Add the selected items to the selection of the timeline.
- * @param formDataJSON
- * @return
  */
-function onAddNode(formDataJSON: FindWidgetFormData) {
+function findWidgetOnAddNode(findFormData: FindWidgetFormData) {
 	const bars = d3.selectAll(".hwscheduling-timeline-graph rect");
-	if (formDataJSON.searchValue == "" || timeline == null) { return; }
-	const searchValues = formDataJSON.searchValue.split(",");
+	if (findFormData.searchValue == "" || timeline == null)
+		return;
 	const successorDict = timeline.idToSuccessorIds;
-	if(formDataJSON.idOrName == "Id"){
-		for (const searchValue of searchValues) {
-			const searchValueInt = parseInt(searchValue);
-			for (const item of bars.data()) {
-				if ((item as TimelineItemData).id == searchValueInt) {
-					if (formDataJSON.directionRight) {
-						addTimelineItemsRight(item as TimelineItemData, formDataJSON.distance, timeline.currentlySelected, timeline.idToDataDict, successorDict);
-					}
-					if (formDataJSON.directionLeft) {
-						addTimelineItemsLeft(item as TimelineItemData, formDataJSON.distance, timeline.currentlySelected, timeline.idToDataDict);
-					}
-				}
-			}
-		}
-	}else{
-		for (const searchValue of searchValues) {
-			for (const item of bars.data()) {
-				if ((item as TimelineItemData).label === searchValue) {
-					if (formDataJSON.directionRight) {
-						addTimelineItemsRight(item as TimelineItemData, formDataJSON.distance, timeline.currentlySelected, timeline.idToDataDict, successorDict);
-					}
-					if (formDataJSON.directionLeft) {
-						addTimelineItemsLeft(item as TimelineItemData, formDataJSON.distance, timeline.currentlySelected, timeline.idToDataDict);
-					}
-				}
-			}
+
+	let matchPredicate: (item: TimelineItemData) => boolean;
+	if (findFormData.idOrName == "Id") {
+		const _searchValues = findFormData.searchValue.split(",");
+		const searchValues = new Set(_searchValues.map(parseInt));
+		matchPredicate = (item: TimelineItemData) => searchValues.has(item.id);
+	} else {
+		const searchValue = findFormData.searchValue;
+		matchPredicate = (item: TimelineItemData) => item.label === searchValue;
+	}
+	const d = findFormData.distance;
+	const currentlySelected = timeline.currentlySelected;
+	const idToData = timeline.idToDataDict;
+	for (const _item of bars.data()) {
+		const item = _item as TimelineItemData;
+		if (matchPredicate(item)) {
+			if (findFormData.directionRight)
+				addTimelineItemsRight(item, d, currentlySelected, idToData, successorDict);
+			if (findFormData.directionLeft)
+				addTimelineItemsLeft(item, d, currentlySelected, idToData);
 		}
 	}
-
 	// Highlight the selected items
 	timeline.applyHighlight();
 }
@@ -108,20 +53,20 @@ function onAddNode(formDataJSON: FindWidgetFormData) {
 /**
  * Clear the selection of the timeline.
  */
-function onClearSelection() {
+function findWidgetOnClearSelection() {
 	timeline.currentlySelected.clear();
 	timeline.applyHighlight();
 }
 
 
-function onAddPath(formDataJSON: FindWidgetFormData) {
+function findWidgetOnAddPath(findFormData: FindWidgetFormData) {
 	const bars = d3.selectAll(".hwscheduling-timeline-graph rect");
 	throw new Error("Not implemented");
 }
 
 
 
-initializeFindWidget(document, onAddNode, onAddPath, onClearSelection);
+initializeFindWidget(document, findWidgetOnAddNode, findWidgetOnAddPath, findWidgetOnClearSelection);
 
 /**
  * Render the document in the webview.
@@ -130,9 +75,10 @@ function updateContent(text: string) {
 	let json;
 	try {
 		if (!text) {
-			text = '{}';
+			json = {};
+		} else {
+			json = JSON.parse(text);
 		}
-		json = JSON.parse(text);
 	} catch {
 		if (graphContainer)
 			graphContainer.style.display = 'none';
@@ -153,7 +99,9 @@ function updateContent(text: string) {
 	}
 }
 
-// Handle messages sent from the extension to the webview
+/**
+ * Handle messages sent from the extension to the webview
+ */
 window.addEventListener('message', (event) => {
 	const message = event.data; // The json data that the extension sent
 	switch (message.type) {
