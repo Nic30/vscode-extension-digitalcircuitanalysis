@@ -3,13 +3,15 @@ import * as d3 from 'd3';
 //const HwSchedulingTimelineGraph = d3.HwSchedulingTimelineGraph;
 import { _vscode } from './vscodePlaceholder';
 import { VcdParser } from './vcdParser';
-import { setupRootSvgOnResize } from './setupRootSvgOnResize';
 export declare const vscode: _vscode;
 
 
 const svg = d3.select("#wave-placeholder");
-setupRootSvgOnResize(svg);
 const wave = new (d3 as any).WaveGraph(svg);
+
+d3.select(window).on("resize", () => {
+	wave.setSizes();
+});
 
 /**
  * Render the document in the webview.
@@ -32,12 +34,15 @@ function updateContent(text: string) {
 		console.log(e);
 		throw e;
 	}
-	wave.bindData(json).then(
-		() => { return; },
-		(e: any) => {
-			wave.setErrorText(e);
-			throw e;
-		});
+	try {
+		wave.bindData(json);
+	} catch (e) {
+		svg.append("text")
+			.attr("transform", "translate(100, 100)")
+			.text('Error: rendering failed ' + e)
+			.attr('style', "fill:red;font-size:20px");
+		throw e;
+	}
 }
 
 // Handle messages sent from the extension to the webview
