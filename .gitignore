@@ -8,3 +8,4 @@ media/*
 
 .externalToolBuilders/*
 
+package-lock.json
