@@ -17,8 +17,6 @@ export class WaveEditorProvider implements vscode.CustomTextEditorProvider {
 
     /**
      * Called when our custom editor is opened.
-     * 
-     * 
      */
     public async resolveCustomTextEditor(
         document: vscode.TextDocument,
@@ -42,7 +40,7 @@ export class WaveEditorProvider implements vscode.CustomTextEditorProvider {
         //
         // The text document acts as our model, so we have to sync change in the document to our
         // editor and sync changes in the editor back to the document.
-        // 
+        //
         // Remember that a single text document can also be shared between multiple custom
         // editors (this happens for example when you split a custom editor)
         const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
@@ -108,20 +106,18 @@ export class WaveEditorProvider implements vscode.CustomTextEditorProvider {
             <script type="text/javascript" src="${getAsset('d3-wave.js')}" nonce="${nonce}"></script>
             <style type="text/css">
                .d3-wave {
-                width: 100%;
+                     width: 100%;
+                     height: 100%;
                      position: fixed;
-                     left: 0;
-                     bottom: 0;
-                     right: 0;
-                height: 80%;
-                top: 80px;
+                     left: 0px;
+                     bottom: 0px;
+                     right: 0px;
+                     top: 0px;
                };
             </style>
         </head>
         <body>
-            <div style="display: block; width: 100%; height: 100%;">
-               <svg id="wave-placeholder"></svg>
-            </div>
+            <svg id="wave-placeholder"></svg>
             <script type="text/javascript" src="${getAsset('wave.js')}" nonce="${nonce}"></script>
         </body>
         </html>`;
