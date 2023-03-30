@@ -68,7 +68,7 @@
 		"d3": "^7.6.1",
 		"d3-hwschedulinggraphs": "^0.0.6",
 		"d3-hwschematic": "^0.1.6",
-		"d3-wave": "^1.1.4",
+		"d3-wave": "^1.1.5",
 		"elkjs": "^0.8.2"
 	},
 	"devDependencies": {
