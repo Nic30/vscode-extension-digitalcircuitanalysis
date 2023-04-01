@@ -1,7 +1,8 @@
 body {
 	justify-content: center;
 	align-items: center;
-	margin: 1em 2em;
+	margin: 0 0;
+	/*margin: 1em 2em;*/
 }
 
 body.vscode-dark {

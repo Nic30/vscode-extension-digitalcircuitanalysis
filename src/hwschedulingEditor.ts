@@ -114,10 +114,12 @@ export class HwSchedulingEditorProvider implements vscode.CustomTextEditorProvid
 		    <script type="text/javascript" src="${getAsset('d3-hwschedulinggraphs.js')}" nonce="${nonce}"></script>
 		    <script type="text/javascript" src="${getAsset('findWidget.js')}" nonce="${nonce}"></script>
 		</head>
-		<body>
-			${findWidgetHtml()}
-			<div id="timelineGraphContainer"
-				style="display: block; width: 100%; height: 100%;"></div>
+		<body style="overflow: hidden;">
+			<div style="display: block; width: 100%; height: 100%;">
+				${findWidgetHtml()}
+				<div id="timelineGraphContainer"
+					style="display: block; width: 100%; height: 100%;"></div>
+			</div>
             <script type="text/javascript" src="${getAsset('hwscheduling.js')}" nonce="${nonce}"></script>
 		</body>
 		</html>`;

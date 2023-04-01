@@ -1,3 +1,4 @@
+/*
 :root {
 	--container-paddding: 20px;
 	--input-padding-vertical: 6px;
@@ -5,7 +6,7 @@
 	--input-margin-vertical: 4px;
 	--input-margin-horizontal: 0;
 }
-
+*/
 body {
 	padding: 0 var(--container-paddding);
 	color: var(--vscode-foreground);
