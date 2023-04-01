@@ -4,7 +4,7 @@ import { findWidgetHtml } from './findWidgetElement';
 
 /**
  * This provider demonstrates:
- * 
+ *
  * - Setting up the initial webview for a custom editor.
  * - Loading scripts and styles in a custom editor.
  * - Synchronizing changes between a text document and a custom editor.
@@ -26,8 +26,8 @@ export class HwSchedulingEditorProvider implements vscode.CustomTextEditorProvid
 
 	/**
 	 * Called when our custom editor is opened.
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	public async resolveCustomTextEditor(
 		document: vscode.TextDocument,
@@ -51,7 +51,7 @@ export class HwSchedulingEditorProvider implements vscode.CustomTextEditorProvid
 		//
 		// The text document acts as our model, so we have to sync change in the document to our
 		// editor and sync changes in the editor back to the document.
-		// 
+		//
 		// Remember that a single text document can also be shared between multiple custom
 		// editors (this happens for example when you split a custom editor)
 
@@ -107,17 +107,12 @@ export class HwSchedulingEditorProvider implements vscode.CustomTextEditorProvid
 		    <link href="${getAsset('reset.css')}" rel="stylesheet" />
 		    <link href="${getAsset('vscode.css')}" rel="stylesheet" />
 		    <link href="${getAsset('hwscheduling.css')}" rel="stylesheet" />
-			<link href="${getAsset('codicon.css')}" rel="stylesheet" />				
-            <script type="text/javascript" nonce="${nonce}">
-                    const vscode = acquireVsCodeApi();
-					window.onload = function() {
-						vscode.postMessage({ command: 'get-data' });
-						console.log('Ready to accept data.');
-					};
-        	</script>
+			<link href="${getAsset('codicon.css')}" rel="stylesheet" />
+            <link href="${getAsset('findWidget.css')}" rel="stylesheet" />
+			<script type="text/javascript" src="${getAsset('vscode-tabinit.js')}" nonce="${nonce}"></script>
 		    <script type="text/javascript" src="${getAsset('d3.min.js')}" nonce="${nonce}"></script>
 		    <script type="text/javascript" src="${getAsset('d3-hwschedulinggraphs.js')}" nonce="${nonce}"></script>
-
+		    <script type="text/javascript" src="${getAsset('findWidget.js')}" nonce="${nonce}"></script>
 		</head>
 		<body>
 			${findWidgetHtml()}
@@ -127,6 +122,4 @@ export class HwSchedulingEditorProvider implements vscode.CustomTextEditorProvid
 		</body>
 		</html>`;
 	}
-
-
 }

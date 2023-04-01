@@ -1,21 +1,24 @@
-import { DocumentHighlight } from "vscode";
 
 export function findWidgetHtml() {
 	return /* html */`
 	<div class="overlayWidgets" style="position:fixed; right:8px;">
 		<form id="findWidget" class="editor-widget find-widget visible" style="display:none; align-items: center; float:right;  min-width:340px; background-color: #262641">
-		<vscode-panels activeid="tab-1" aria-label="Panels" style="width: 100%">
+			<vscode-panels activeid="tab-1" aria-label="Panels" style="width: 100%">
 				<vscode-panel-tab id="tab-1">NODE</vscode-panel-tab>
 				<vscode-panel-tab id="tab-2">PATH</vscode-panel-tab>
 				<vscode-panel-view id="view-1" style="flex-direction: column;">
 					<section  style="display:grid; grid-template-columns: auto auto; align-items: center;">
 						<vscode-text-field name="searchValue" placeholder="Search value" style="margin-right: 4px">
 							<section slot="end" style="display:flex; align-items: center;">
-								<vscode-button appearance="icon" aria-label="Match Case" title="Case sensitive">
+								<vscode-button appearance="icon" class="icon-checked" aria-label="Match Case" title="Case sensitive"
+											onclick="digitalCircuitAnalysisOnIconCheckboxButtonClick(this)">
 									<span class="codicon codicon-case-sensitive"></span>
+									<vscode-checkbox style="display:none" name="searchCaseSensitive" checked/>
 								</vscode-button>
-								<vscode-button appearance="icon" aria-label="Use Regular Expression" title="Regular expression">
+								<vscode-button appearance="icon" class="icon-checked" aria-label="Use Regular Expression" title="Regular expression"
+											onclick="digitalCircuitAnalysisOnIconCheckboxButtonClick(this)">
 									<span class="codicon codicon-regex"></span>
+									<vscode-checkbox style="display:none" name="searchRegex" checked/>
 								</vscode-button>
 							</section>
 						</vscode-text-field>

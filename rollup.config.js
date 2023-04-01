@@ -19,8 +19,20 @@ const extensionConfig = {
         'vscode'
     ],
     plugins: [
-        typescript({ sourceMap: !production, inlineSources: !production, tsconfig: "./src/tsconfig.json" })
+        typescript({ sourceMap: !production, inlineSources: !production, tsconfig: "./src/tsconfig.json" }),
+        copy({
+            verbose: true,
+            targets: [
+                { src: 'node_modules/d3/dist/d3.min.js', dest: 'media/' },
+                { src: 'src/media/reset.css', dest: 'media/' },
+                { src: 'src/media/vscode.css', dest: 'media/' },
+                { src: 'src/media/findWidget.css', dest: 'media/' },
+                { src: 'src/media/findWidget.js', dest: 'media/' },
+                { src: 'src/media/vscode-tabinit.js', dest: 'media/' },
+            ]
+        })
     ]
+
 };
 
 const schedulingViewerConfig = {

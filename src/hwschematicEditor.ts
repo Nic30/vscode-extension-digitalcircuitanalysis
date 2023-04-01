@@ -18,8 +18,8 @@ export class HwSchematicEditorProvider implements vscode.CustomTextEditorProvide
 
 	/**
 	 * Called when our custom editor is opened.
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	public async resolveCustomTextEditor(
 		document: vscode.TextDocument,
@@ -43,7 +43,7 @@ export class HwSchematicEditorProvider implements vscode.CustomTextEditorProvide
 		//
 		// The text document acts as our model, so we have to sync change in the document to our
 		// editor and sync changes in the editor back to the document.
-		// 
+		//
 		// Remember that a single text document can also be shared between multiple custom
 		// editors (this happens for example when you split a custom editor)
 		const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
@@ -97,20 +97,16 @@ export class HwSchematicEditorProvider implements vscode.CustomTextEditorProvide
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		    <link href="${getAsset('reset.css')}" rel="stylesheet" />
 		    <link href="${getAsset('vscode.css')}" rel="stylesheet" />
-		    <link href="${getAsset('d3-hwschematic-dark.css')}" rel="stylesheet" />	
-			<link href="${getAsset('codicon.css')}" rel="stylesheet" />		
-            <script type="text/javascript" nonce="${nonce}">
-                    const vscode = acquireVsCodeApi();
-					window.onload = function() {
-						vscode.postMessage({ command: 'get-data' });
-						console.log('Ready to accept data.');
-					};
-        	</script>
+		    <link href="${getAsset('d3-hwschematic-dark.css')}" rel="stylesheet" />
+			<link href="${getAsset('codicon.css')}" rel="stylesheet" />
+            <link href="${getAsset('findWidget.css')}" rel="stylesheet" />
+			<script type="text/javascript" src="${getAsset('vscode-tabinit.js')}" nonce="${nonce}"></script>
 		    <script type="text/javascript" src="${getAsset('elk.bundled.js')}" nonce="${nonce}"></script>
 		    <script type="text/javascript" src="${getAsset('d3.min.js')}" nonce="${nonce}"></script>
 		    <script type="text/javascript" src="${getAsset('d3-hwschematic.js')}" nonce="${nonce}"></script>
+			<script type="text/javascript" src="${getAsset('findWidget.js')}" nonce="${nonce}"></script>
 		</head>
-		<body onkeypress="WidgetControl(event);">
+		<body>
 			${findWidgetHtml()}
 		    <div style="display: block; width: 100%; height: 100%;">
 				<svg id="scheme-placeholder"></svg>
