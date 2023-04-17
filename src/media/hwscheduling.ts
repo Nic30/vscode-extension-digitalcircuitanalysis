@@ -27,8 +27,8 @@ function findWidgetOnAddNode(findFormData: FindWidgetFormData) {
 
     let matchPredicate: (item: TimelineItemData) => boolean;
     if (findFormData.idOrName == "Id") {
-        const _searchValues = findFormData.searchValue.split(",");
-        const searchValues = new Set(_searchValues.map(parseInt));
+        const _searchValues = findFormData.searchValue.split(",").map((x)=>x.trim());
+        const searchValues = new Set(_searchValues.map((x) => parseInt(x)));
         matchPredicate = (item: TimelineItemData) => searchValues.has(item.id);
     } else {
         const searchValue = findFormData.searchValue;
