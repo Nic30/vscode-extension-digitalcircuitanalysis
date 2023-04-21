@@ -74,9 +74,10 @@ function findWidgetOnAddPath(findFormData: FindWidgetFormData) {
     throw new Error("Not implemented");
 }
 
+const findWidgetFormState = new FindWidgetFormData();
 
-
-initializeFindWidget(document, findWidgetOnAddNode, findWidgetOnAddPath, findWidgetOnClearSelection);
+initializeFindWidget(document, findWidgetOnAddNode, findWidgetOnAddPath, 
+                     findWidgetOnClearSelection, findWidgetFormState);
 
 /**
  * Render the document in the webview.

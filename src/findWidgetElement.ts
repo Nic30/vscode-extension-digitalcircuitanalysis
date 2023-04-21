@@ -2,7 +2,7 @@
 export function findWidgetHtml() {
 	return /* html */`
 	<div class="overlayWidgets" style="position:fixed; right:8px;">
-		<form id="findWidget" class="editor-widget find-widget visible" style="display:none; align-items: center; float:right;  min-width:340px; background-color: #262641">
+		<form id="findWidget" class="editor-widget find-widget visible" style="display:none; align-items: center; float:right;  min-width:340px; background-color: #262641; display: block;">
 			<vscode-panels activeid="tab-1" aria-label="Panels" style="width: 100%">
 				<vscode-panel-tab id="tab-1">NODE</vscode-panel-tab>
 				<vscode-panel-tab id="tab-2">PATH</vscode-panel-tab>
@@ -76,6 +76,8 @@ export function findWidgetHtml() {
 					</section>
 				</vscode-panel-view>
 			</vscode-panels>
+			<table class="history-table">
+			</table>
 		</form>
 	</div>
 	`;

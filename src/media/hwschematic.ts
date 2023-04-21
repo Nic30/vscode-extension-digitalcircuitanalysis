@@ -29,7 +29,9 @@ function onAddPath(formData: FindWidgetFormData) {
 function onClearSelection() {
 	console.log("clear selection");
 }
-initializeFindWidget(document, onAddNode, onAddPath, onClearSelection);
+
+const findWidgetFormState = new FindWidgetFormData();
+initializeFindWidget(document, onAddNode, onAddPath, onClearSelection, findWidgetFormState);
 
 
 /**
