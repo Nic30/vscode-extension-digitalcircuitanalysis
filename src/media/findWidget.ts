@@ -3,35 +3,68 @@
  */
 import { provideVSCodeDesignSystem, vsCodeButton, vsCodeCheckbox, vsCodePanels, vsCodePanelTab, vsCodePanelView, vsCodeRadio, vsCodeRadioGroup, vsCodeTextField } from "@vscode/webview-ui-toolkit";
 class SearchHistoryItem {
-	item: string;
-	constructor(item: string) {
-		this.item = item;
+	name: string;
+	isChecked: boolean;
+	selectedNodes: Set<any>;
+	constructor(name: string) {
+		this.name = name;
+		this.isChecked = true;
+		this.selectedNodes = new Set();
 	}
 
-	addRow(document: Document, table: HTMLTableElement) {
+	renderRow(document: Document, table: HTMLTableElement, onDeleteClick: (ev: MouseEvent) => any) {
 		// inserts a new empty row to the table
 		const newRow = table.insertRow();
-		const col1 = newRow.insertCell();
-		const col2 = newRow.insertCell();
-		const col3 = newRow.insertCell();
 
-		// creates checkbox
+		// creates radio button
+		const col0 = newRow.insertCell();
+		const radio = document.createElement("input") as HTMLInputElement;
+		radio.type = "radio";
+		radio.name = "selectedSearchGroup";
+		radio.style.width = "1.2rem";
+		col0.appendChild(radio);
+
+		// creates is selected checkbox
+		const col1 = newRow.insertCell();
 		const checkbox = document.createElement("vscode-checkbox") as HTMLInputElement;
 		checkbox.className = "checked-indicator";
-		checkbox.checked = true;
+		checkbox.checked = this.isChecked;
+		col1.appendChild(checkbox);
 
-		// creates button
+
+		//creates input/span for group label
+		const col2 = newRow.insertCell();
+		const input = document.createElement("input");
+		input.type = "text";
+		const span = document.createElement("span");
+		// span.style.minWidth = "1rem";
+		// span.style.minHeight = "1rem";
+		input.style.display = "none";
+		input.value = this.name;
+		input.onchange = (ev: Event) => {
+			this.name = span.textContent = input.value;
+			span.style.display = "block";
+			input.style.display = "none";
+		};
+		span.ondblclick = (ev: MouseEvent) => {
+			input.style.display = "block";
+			span.style.display = "none";
+		};
+		//span.style.display = "hidden";
+		span.textContent = this.name;
+		col2.appendChild(input);
+		col2.appendChild(span);
+
+
+		// creates remove button
+		const col3 = newRow.insertCell();
 		const button = document.createElement("button");
 		button.className = "codicon codicon-chrome-close";
 		button.type = "button";
-
-
-		// fills row values
-		col1.appendChild(checkbox);
-		col2.appendChild(button);
-		col3.innerHTML = this.item;
+		button.onclick = onDeleteClick;
+		col3.appendChild(button);
 	}
-	
+
 }
 export class FindWidgetFormData {
 	/* Node */
@@ -81,40 +114,50 @@ export class FindWidgetFormData {
 		this.destId = parseInt(data.destId);
 		this.searchMethod = data.searchMethod;
 
-		if (data.searchValue !== "") {
-			this.searchHistory.push(new SearchHistoryItem(data.searchValue));
-		}
+
+	}
+	addToSearchHistory(name: string) {
+		this.searchHistory.push(new SearchHistoryItem(name));
 	}
 }
 
-export function initializeFindWidget(document: Document, 
-	onAddNode: (formDataJSON: FindWidgetFormData) => void, 
-	onAddPath: (formDataJSON: FindWidgetFormData) => void, 
+export function initializeFindWidget(document: Document,
+	onAddNode: (formDataJSON: FindWidgetFormData) => void,
+	onAddPath: (formDataJSON: FindWidgetFormData) => void,
 	onClearSelection: () => void,
 	findWidgetFormState: FindWidgetFormData) {
 
-	provideVSCodeDesignSystem().register(vsCodeButton(), 
-	vsCodeCheckbox(), vsCodePanels(), vsCodePanelTab(), 
-	vsCodePanelView(), vsCodeRadio(), vsCodeRadioGroup(), 
-	vsCodeTextField());
+	provideVSCodeDesignSystem().register(vsCodeButton(),
+		vsCodeCheckbox(), vsCodePanels(), vsCodePanelTab(),
+		vsCodePanelView(), vsCodeRadio(), vsCodeRadioGroup(),
+		vsCodeTextField());
 
 	const widget = document.getElementById("findWidget") as HTMLFormElement;
 	const mainInputField = widget.querySelector("[name=searchValue]");
 
 	function renderSearchHistory(document: Document, searchHistory: SearchHistoryItem[]) {
-		
+
 		const table = document.querySelector('.history-table') as HTMLTableElement;
-		
+
 		while (table.rows.length > 0) {
 			table.deleteRow(0);
 		}
 
-		for(const item of searchHistory ) {
-			item.addRow(document, table);
+		for (const item of searchHistory) {
+			const onDeleteClick = (() => (ev: MouseEvent) => {
+				const index = searchHistory.indexOf(item, 0);
+				if (index > -1) {
+					searchHistory.splice(index, 1);
+				} else {
+					throw new Error("Error: Item was not found");
+				}
+				renderSearchHistory(document, searchHistory);
+			})();
+			item.renderRow(document, table, onDeleteClick);
 		}
 
 
-		console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+		console.log("__________breakpoint ______________");
 	}
 	function widgetControl(e: KeyboardEvent) {
 		if (!widget) return;
@@ -144,7 +187,7 @@ export function initializeFindWidget(document: Document,
 
 		findWidgetFormState.update(formDataJSON);
 		onAddNode(findWidgetFormState);
-		renderSearchHistory(document, findWidgetFormState.searchHistory);
+
 
 	};
 	(window as any).digitalCircuitAnalysisOnFindWidgetOnClearSelection = () => {
@@ -156,9 +199,13 @@ export function initializeFindWidget(document: Document,
 		const formData = new FormData(widget);
 		const formDataJSON = {} as any;
 		formData.forEach((value, key) => formDataJSON[key] = value);
-		
+
 		findWidgetFormState.update(formDataJSON);
 		onAddPath(findWidgetFormState);
+	};
+	(window as any).digitalCircuitAnalysisOnFindWidgetOnAddGroup = () => {
+		findWidgetFormState.addToSearchHistory("default");
+		renderSearchHistory(document, findWidgetFormState.searchHistory);
 	};
 
 }
