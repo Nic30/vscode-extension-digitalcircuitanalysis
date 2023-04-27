@@ -16,8 +16,9 @@ class SearchHistoryItem {
 		const col3 = newRow.insertCell();
 
 		// creates checkbox
-		const checkbox = document.createElement("input");
-		checkbox.type = "checkbox";
+		const checkbox = document.createElement("vscode-checkbox") as HTMLInputElement;
+		checkbox.className = "checked-indicator";
+		checkbox.checked = true;
 
 		// creates button
 		const button = document.createElement("button");
