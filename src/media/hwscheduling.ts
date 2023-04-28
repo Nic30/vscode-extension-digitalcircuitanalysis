@@ -20,8 +20,9 @@ errorContainer.style.display = 'none';
  * Add the selected items to the selection of the timeline.
  */
 function findWidgetOnAddNode(findFormData: FindWidgetFormData) {
+    findFormData.timeline = timeline;
     const bars = d3.selectAll(".hwscheduling-timeline-graph rect");
-    if (findFormData.searchValue == "" || timeline == null)
+    if (findFormData.searchValue === "" || timeline === null)
         return;
     const successorDict = timeline.idToSuccessorIds;
 
@@ -50,14 +51,16 @@ function findWidgetOnAddNode(findFormData: FindWidgetFormData) {
     for (const _item of bars.data()) {
         const item = _item as TimelineItemData;
         if (matchPredicate(item)) {
-            if (findFormData.directionRight)
-                addTimelineItemsRight(item, d, currentlySelected, idToData, successorDict);
-            if (findFormData.directionLeft)
-                addTimelineItemsLeft(item, d, currentlySelected, idToData);
+            // if (findFormData.directionRight)
+            //     addTimelineItemsRight(item, d, currentlySelected, idToData, successorDict);
+            // if (findFormData.directionLeft)
+            //     addTimelineItemsLeft(item, d, currentlySelected, idToData);
+            
+            findFormData.getCheckedSearchHistoryItem()?.addItem(item);
         }
     }
     // Highlight the selected items
-    timeline.applyHighlight();
+    //timeline.applyHighlight();
 }
 
 /**

@@ -2,43 +2,99 @@
  * This code contains main API for FindWidget which is used to bind button callbacks to the form from the aplication which is using this form.
  */
 import { provideVSCodeDesignSystem, vsCodeButton, vsCodeCheckbox, vsCodePanels, vsCodePanelTab, vsCodePanelView, vsCodeRadio, vsCodeRadioGroup, vsCodeTextField } from "@vscode/webview-ui-toolkit";
-class SearchHistoryItem {
+import { TimelineItemData } from 'd3-hwschedulinggraphs/dist/data';
+import { addTimelineItemsLeft, addTimelineItemsRight } from "./hwschedulingFindWidget";
+import { tickFormat } from "d3";
+
+class HighlightGroup {
 	name: string;
-	isChecked: boolean;
-	selectedNodes: Set<any>;
-	constructor(name: string) {
+	findWidgetFormState: FindWidgetFormData;
+	items: Set<TimelineItemData>;
+	RadioChecked: boolean;
+	CheckboxChecked: boolean;
+	
+
+	constructor(name: string, findWidgetFormState: FindWidgetFormData) {
 		this.name = name;
-		this.isChecked = true;
-		this.selectedNodes = new Set();
+		this.findWidgetFormState = findWidgetFormState;
+		this.items = new Set();
+		this.RadioChecked = false;
+		this.CheckboxChecked = false;
 	}
 
-	renderRow(document: Document, table: HTMLTableElement, onDeleteClick: (ev: MouseEvent) => any) {
-		// inserts a new empty row to the table
-		const newRow = table.insertRow();
+	checkItem(): void {
+		for (const item of this.findWidgetFormState.highlightGroups) {
+			item.RadioChecked = false;
+		}
+		this.RadioChecked = true;
+	}
 
-		// creates radio button
-		const col0 = newRow.insertCell();
+	highlightItems(): void {
+		const timeline = this.findWidgetFormState.timeline;
+		if (timeline === null) {
+			console.log("Timeline is null");
+			return;
+		}
+		for (const item of this.items) {
+			if (this.findWidgetFormState.directionRight)
+                addTimelineItemsRight(item, this.findWidgetFormState.distance, timeline.currentlySelected,  timeline.idToData,  timeline.successorDict);
+            if (this.findWidgetFormState.directionLeft)
+                addTimelineItemsLeft(item, this.findWidgetFormState.distance,  timeline.currentlySelected,  timeline.idToData);
+		}
+		timeline.applyHighlight();
+
+	}
+
+	hideItems(): void {
+		const timeline = this.findWidgetFormState.timeline;
+		if (timeline === null) {
+			console.log("Timeline is null");
+			return;
+		}
+		for (const node of this.items) {
+			timeline.currentlySelected.delete(node);
+		}
+		timeline.applyHighlight();
+	}
+
+	renderRadio(newRow: HTMLTableRowElement): void {
+		const col = newRow.insertCell();
 		const radio = document.createElement("input") as HTMLInputElement;
 		radio.type = "radio";
 		radio.name = "selectedSearchGroup";
 		radio.style.width = "1.2rem";
-		col0.appendChild(radio);
+		radio.onclick = this.checkItem.bind(this);
+		radio.checked = this.RadioChecked;
+		col.appendChild(radio);
+	}
 
-		// creates is selected checkbox
-		const col1 = newRow.insertCell();
+	renderCheckbox(newRow: HTMLTableRowElement): void {
+		const col = newRow.insertCell();
 		const checkbox = document.createElement("vscode-checkbox") as HTMLInputElement;
 		checkbox.className = "checked-indicator";
-		checkbox.checked = this.isChecked;
-		col1.appendChild(checkbox);
 
+		checkbox.checked = this.CheckboxChecked;
+		checkbox.addEventListener('click', () => {
+			if (checkbox.checked) {
+				this.CheckboxChecked = false;
+				this.hideItems();
 
+			} else {
+				this.CheckboxChecked = true;
+				this.highlightItems();
+			}
+		});
+
+		checkbox.checked = this.CheckboxChecked;
+		col.appendChild(checkbox);
+	}
+
+	renderInput(newRow: HTMLTableRowElement): void {
 		//creates input/span for group label
 		const col2 = newRow.insertCell();
 		const input = document.createElement("input");
 		input.type = "text";
 		const span = document.createElement("span");
-		// span.style.minWidth = "1rem";
-		// span.style.minHeight = "1rem";
 		input.style.display = "none";
 		input.value = this.name;
 		input.onchange = (ev: Event) => {
@@ -54,15 +110,28 @@ class SearchHistoryItem {
 		span.textContent = this.name;
 		col2.appendChild(input);
 		col2.appendChild(span);
+	}
 
-
-		// creates remove button
+	renderDeletingButton(newRow: HTMLTableRowElement, onDeleteClick: (ev: MouseEvent) => any): void {
 		const col3 = newRow.insertCell();
 		const button = document.createElement("button");
 		button.className = "codicon codicon-chrome-close";
 		button.type = "button";
 		button.onclick = onDeleteClick;
 		col3.appendChild(button);
+	}
+
+	renderRow(document: Document, table: HTMLTableElement, onDeleteClick: (ev: MouseEvent) => any, onClearSelection: any): void {
+		const newRow = table.insertRow();
+
+		this.renderRadio(newRow);
+		this.renderCheckbox(newRow);
+		this.renderInput(newRow);
+		this.renderDeletingButton(newRow, onDeleteClick);		
+	}
+
+	addItem(item: any): void {
+		this.items.add(item);
 	}
 
 }
@@ -79,7 +148,8 @@ export class FindWidgetFormData {
 	sourceId: number; // source node id
 	destId: number; // destination node id
 	searchMethod: string; // All or BFS or DFS
-	searchHistory: SearchHistoryItem[]; // List of searched components
+	highlightGroups: HighlightGroup[]; // List of groups, which items are highlighted
+	timeline: any | null;
 	constructor() {
 		/* Node */
 		this.searchValue = "";
@@ -94,7 +164,10 @@ export class FindWidgetFormData {
 		this.sourceId = 0;
 		this.destId = 0;
 		this.searchMethod = "bfs";
-		this.searchHistory = [];
+		this.highlightGroups = [];
+
+		this.timeline = null;
+
 	}
 	update(data: any) {
 		/* Node */
@@ -114,10 +187,18 @@ export class FindWidgetFormData {
 		this.destId = parseInt(data.destId);
 		this.searchMethod = data.searchMethod;
 
-
 	}
-	addToSearchHistory(name: string) {
-		this.searchHistory.push(new SearchHistoryItem(name));
+	addToSearchHistory(name: string): void {
+		this.highlightGroups.push(new HighlightGroup(name, this));
+	}
+
+	getCheckedSearchHistoryItem(): HighlightGroup | null {
+		for (const item of this.highlightGroups) {
+			if (item.RadioChecked) {
+				return item;
+			}
+		}
+		return null;
 	}
 }
 
@@ -125,7 +206,8 @@ export function initializeFindWidget(document: Document,
 	onAddNode: (formDataJSON: FindWidgetFormData) => void,
 	onAddPath: (formDataJSON: FindWidgetFormData) => void,
 	onClearSelection: () => void,
-	findWidgetFormState: FindWidgetFormData) {
+	findWidgetFormState: FindWidgetFormData,
+	) {
 
 	provideVSCodeDesignSystem().register(vsCodeButton(),
 		vsCodeCheckbox(), vsCodePanels(), vsCodePanelTab(),
@@ -135,7 +217,7 @@ export function initializeFindWidget(document: Document,
 	const widget = document.getElementById("findWidget") as HTMLFormElement;
 	const mainInputField = widget.querySelector("[name=searchValue]");
 
-	function renderSearchHistory(document: Document, searchHistory: SearchHistoryItem[]) {
+	function renderSearchHistory(document: Document, searchHistory: HighlightGroup[]) {
 
 		const table = document.querySelector('.history-table') as HTMLTableElement;
 
@@ -153,7 +235,7 @@ export function initializeFindWidget(document: Document,
 				}
 				renderSearchHistory(document, searchHistory);
 			})();
-			item.renderRow(document, table, onDeleteClick);
+			item.renderRow(document, table, onDeleteClick, onClearSelection);
 		}
 
 
@@ -164,7 +246,7 @@ export function initializeFindWidget(document: Document,
 		if (e.ctrlKey && e.key === "f") {
 			if (widget.style.display === "none") {
 				widget.style.display = "block"; // displays findForm
-				renderSearchHistory(document, findWidgetFormState.searchHistory);
+				renderSearchHistory(document, findWidgetFormState.highlightGroups);
 				(mainInputField as HTMLElement)?.focus();
 			} else {
 				widget.style.display = "none";
@@ -205,7 +287,7 @@ export function initializeFindWidget(document: Document,
 	};
 	(window as any).digitalCircuitAnalysisOnFindWidgetOnAddGroup = () => {
 		findWidgetFormState.addToSearchHistory("default");
-		renderSearchHistory(document, findWidgetFormState.searchHistory);
+		renderSearchHistory(document, findWidgetFormState.highlightGroups);
 	};
 
 }
