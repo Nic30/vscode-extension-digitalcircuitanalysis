@@ -19,7 +19,7 @@ class HighlightGroup {
 		this.findWidgetFormState = findWidgetFormState;
 		this.items = new Set();
 		this.RadioChecked = false;
-		this.CheckboxChecked = false;
+		this.CheckboxChecked = true;
 	}
 
 	checkItem(): void {
@@ -36,10 +36,7 @@ class HighlightGroup {
 			return;
 		}
 		for (const item of this.items) {
-			if (this.findWidgetFormState.directionRight)
-                addTimelineItemsRight(item, this.findWidgetFormState.distance, timeline.currentlySelected,  timeline.idToData,  timeline.successorDict);
-            if (this.findWidgetFormState.directionLeft)
-                addTimelineItemsLeft(item, this.findWidgetFormState.distance,  timeline.currentlySelected,  timeline.idToData);
+			timeline.currentlySelected.add(item);
 		}
 		timeline.applyHighlight();
 
@@ -63,7 +60,7 @@ class HighlightGroup {
 		radio.type = "radio";
 		radio.name = "selectedSearchGroup";
 		radio.style.width = "1.2rem";
-		radio.onclick = this.checkItem.bind(this);
+		radio.onchange = this.checkItem.bind(this);
 		radio.checked = this.RadioChecked;
 		col.appendChild(radio);
 	}
@@ -74,16 +71,15 @@ class HighlightGroup {
 		checkbox.className = "checked-indicator";
 
 		checkbox.checked = this.CheckboxChecked;
-		checkbox.addEventListener('click', () => {
+		checkbox.onchange = () => {
 			if (checkbox.checked) {
-				this.CheckboxChecked = false;
-				this.hideItems();
-
-			} else {
 				this.CheckboxChecked = true;
 				this.highlightItems();
+			} else {
+				this.CheckboxChecked = false;
+				this.hideItems();
 			}
-		});
+		};
 
 		checkbox.checked = this.CheckboxChecked;
 		col.appendChild(checkbox);
@@ -133,8 +129,8 @@ class HighlightGroup {
 	addItem(item: any): void {
 		this.items.add(item);
 	}
-
 }
+
 export class FindWidgetFormData {
 	/* Node */
 	searchValue: string; // comma separated list
@@ -164,7 +160,10 @@ export class FindWidgetFormData {
 		this.sourceId = 0;
 		this.destId = 0;
 		this.searchMethod = "bfs";
-		this.highlightGroups = [];
+
+		const defaultGroup = new HighlightGroup("default", this);
+		defaultGroup.RadioChecked = true;
+		this.highlightGroups = [defaultGroup];
 
 		this.timeline = null;
 
@@ -188,7 +187,7 @@ export class FindWidgetFormData {
 		this.searchMethod = data.searchMethod;
 
 	}
-	addToSearchHistory(name: string): void {
+	addToHighlightGroups(name: string): void {
 		this.highlightGroups.push(new HighlightGroup(name, this));
 	}
 
@@ -269,8 +268,10 @@ export function initializeFindWidget(document: Document,
 
 		findWidgetFormState.update(formDataJSON);
 		onAddNode(findWidgetFormState);
-
-
+		const curSelectedGroup = findWidgetFormState.getCheckedSearchHistoryItem();
+		if (curSelectedGroup?.CheckboxChecked) {
+			curSelectedGroup?.highlightItems();
+		}
 	};
 	(window as any).digitalCircuitAnalysisOnFindWidgetOnClearSelection = () => {
 		onClearSelection();
@@ -286,7 +287,7 @@ export function initializeFindWidget(document: Document,
 		onAddPath(findWidgetFormState);
 	};
 	(window as any).digitalCircuitAnalysisOnFindWidgetOnAddGroup = () => {
-		findWidgetFormState.addToSearchHistory("default");
+		findWidgetFormState.addToHighlightGroups("default");
 		renderSearchHistory(document, findWidgetFormState.highlightGroups);
 	};
 

@@ -51,10 +51,11 @@ function findWidgetOnAddNode(findFormData: FindWidgetFormData) {
     for (const _item of bars.data()) {
         const item = _item as TimelineItemData;
         if (matchPredicate(item)) {
-            // if (findFormData.directionRight)
-            //     addTimelineItemsRight(item, d, currentlySelected, idToData, successorDict);
-            // if (findFormData.directionLeft)
-            //     addTimelineItemsLeft(item, d, currentlySelected, idToData);
+            const items = findFormData.getCheckedSearchHistoryItem()?.items as Set<TimelineItemData>;
+            if (findFormData.directionRight)
+                addTimelineItemsRight(item, d, items, idToData, successorDict);
+            if (findFormData.directionLeft)
+                addTimelineItemsLeft(item, d, items, idToData);
             
             findFormData.getCheckedSearchHistoryItem()?.addItem(item);
         }
