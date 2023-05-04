@@ -4,15 +4,15 @@
 import { provideVSCodeDesignSystem, vsCodeButton, vsCodeCheckbox, vsCodePanels, vsCodePanelTab, vsCodePanelView, vsCodeRadio, vsCodeRadioGroup, vsCodeTextField } from "@vscode/webview-ui-toolkit";
 import { TimelineItemData } from 'd3-hwschedulinggraphs/dist/data';
 import { addTimelineItemsLeft, addTimelineItemsRight } from "./hwschedulingFindWidget";
-import { tickFormat } from "d3";
+import d3, { tickFormat } from "d3";
 
 class HighlightGroup {
 	name: string;
 	findWidgetFormState: FindWidgetFormData;
-	items: Set<TimelineItemData>;
+	items: Set<TimelineItemData | any>;
 	RadioChecked: boolean;
 	CheckboxChecked: boolean;
-	
+
 
 	constructor(name: string, findWidgetFormState: FindWidgetFormData) {
 		this.name = name;
@@ -40,6 +40,57 @@ class HighlightGroup {
 		}
 		timeline.applyHighlight();
 
+	}
+
+	highlightItemsHwSchematic(): void {
+		for (const item of this.items) {
+			this.findWidgetFormState.currentlySelected.add(item);
+		}
+
+		const components = d3.selectAll(".d3-hwschematic rect");
+		for (const htmlIItem of components) {
+			if (htmlIItem !== null) {
+				const item = htmlIItem as HTMLElement;
+				item.style.opacity = "1";
+			}
+		}
+
+		if (this.findWidgetFormState.currentlySelected.size === 0) {
+			return;
+		}
+
+		for (const htmlIItem of components) {
+			if (htmlIItem !== null && !this.findWidgetFormState.currentlySelected.has(htmlIItem)) {
+				const item = htmlIItem as HTMLElement;
+				item.style.opacity = "0.1";
+			}
+		}
+
+	}
+
+	hideItemsHwSchematic(): void {
+		for (const item of this.items) {
+			this.findWidgetFormState.currentlySelected.delete(item);
+		}
+
+		const components = d3.selectAll(".d3-hwschematic rect");
+		for (const htmlIItem of components) {
+			if (htmlIItem !== null) {
+				const item = htmlIItem as HTMLElement;
+				item.style.opacity = "1";
+			}
+		}
+
+		if (this.findWidgetFormState.currentlySelected.size === 0) {
+			return;
+		}
+
+		for (const htmlIItem of components) {
+			if (htmlIItem !== null && !this.findWidgetFormState.currentlySelected.has(htmlIItem)) {
+				const item = htmlIItem as HTMLElement;
+				item.style.opacity = "0.1";
+			}
+		}
 	}
 
 	hideItems(): void {
@@ -75,9 +126,15 @@ class HighlightGroup {
 			if (checkbox.checked) {
 				this.CheckboxChecked = true;
 				this.highlightItems();
+				if (this.findWidgetFormState.timeline === null) {
+					this.highlightItemsHwSchematic();
+				}
 			} else {
 				this.CheckboxChecked = false;
 				this.hideItems();
+				if (this.findWidgetFormState.timeline === null) {
+					this.hideItemsHwSchematic();
+				}
 			}
 		};
 
@@ -123,7 +180,7 @@ class HighlightGroup {
 		this.renderRadio(newRow);
 		this.renderCheckbox(newRow);
 		this.renderInput(newRow);
-		this.renderDeletingButton(newRow, onDeleteClick);		
+		this.renderDeletingButton(newRow, onDeleteClick);
 	}
 
 	addItem(item: any): void {
@@ -140,6 +197,7 @@ export class FindWidgetFormData {
 	distance: number; // distance to search to
 	directionRight: boolean; // true if right direction is selected
 	directionLeft: boolean; // true if left direction is selected
+	currentlySelected: Set<any>;
 	/* Path */
 	sourceId: number; // source node id
 	destId: number; // destination node id
@@ -166,6 +224,7 @@ export class FindWidgetFormData {
 		this.highlightGroups = [defaultGroup];
 
 		this.timeline = null;
+		this.currentlySelected = new Set<any>;
 
 	}
 	update(data: any) {
@@ -206,7 +265,7 @@ export function initializeFindWidget(document: Document,
 	onAddPath: (formDataJSON: FindWidgetFormData) => void,
 	onClearSelection: () => void,
 	findWidgetFormState: FindWidgetFormData,
-	) {
+) {
 
 	provideVSCodeDesignSystem().register(vsCodeButton(),
 		vsCodeCheckbox(), vsCodePanels(), vsCodePanelTab(),
@@ -216,23 +275,24 @@ export function initializeFindWidget(document: Document,
 	const widget = document.getElementById("findWidget") as HTMLFormElement;
 	const mainInputField = widget.querySelector("[name=searchValue]");
 
-	function renderSearchHistory(document: Document, searchHistory: HighlightGroup[]) {
+	function renderHighlightGroups(document: Document, highlightGroups: HighlightGroup[]) {
 
 		const table = document.querySelector('.history-table') as HTMLTableElement;
 
+		// deletes table rows
 		while (table.rows.length > 0) {
 			table.deleteRow(0);
 		}
 
-		for (const item of searchHistory) {
+		for (const item of highlightGroups) {
 			const onDeleteClick = (() => (ev: MouseEvent) => {
-				const index = searchHistory.indexOf(item, 0);
+				const index = highlightGroups.indexOf(item, 0);
 				if (index > -1) {
-					searchHistory.splice(index, 1);
+					highlightGroups.splice(index, 1);
 				} else {
 					throw new Error("Error: Item was not found");
 				}
-				renderSearchHistory(document, searchHistory);
+				renderHighlightGroups(document, highlightGroups);
 			})();
 			item.renderRow(document, table, onDeleteClick, onClearSelection);
 		}
@@ -245,7 +305,7 @@ export function initializeFindWidget(document: Document,
 		if (e.ctrlKey && e.key === "f") {
 			if (widget.style.display === "none") {
 				widget.style.display = "block"; // displays findForm
-				renderSearchHistory(document, findWidgetFormState.highlightGroups);
+				renderHighlightGroups(document, findWidgetFormState.highlightGroups);
 				(mainInputField as HTMLElement)?.focus();
 			} else {
 				widget.style.display = "none";
@@ -271,6 +331,9 @@ export function initializeFindWidget(document: Document,
 		const curSelectedGroup = findWidgetFormState.getCheckedSearchHistoryItem();
 		if (curSelectedGroup?.CheckboxChecked) {
 			curSelectedGroup?.highlightItems();
+			if (findWidgetFormState.timeline === null) {
+				curSelectedGroup?.highlightItemsHwSchematic();
+			}
 		}
 	};
 	(window as any).digitalCircuitAnalysisOnFindWidgetOnClearSelection = () => {
@@ -288,7 +351,7 @@ export function initializeFindWidget(document: Document,
 	};
 	(window as any).digitalCircuitAnalysisOnFindWidgetOnAddGroup = () => {
 		findWidgetFormState.addToHighlightGroups("default");
-		renderSearchHistory(document, findWidgetFormState.highlightGroups);
+		renderHighlightGroups(document, findWidgetFormState.highlightGroups);
 	};
 
 }

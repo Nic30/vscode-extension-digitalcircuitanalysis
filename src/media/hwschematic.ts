@@ -5,6 +5,7 @@ import { _vscode } from './vscodePlaceholder';
 import { setupRootSvgOnResize } from './setupRootSvgOnResize';
 export declare const vscode: _vscode;
 import { initializeFindWidget, FindWidgetFormData } from './findWidget';
+import { assert } from 'console';
 
 const svg = d3.select("#scheme-placeholder");
 
@@ -20,14 +21,59 @@ zoom.on("zoom", function applyTransform(ev) {
 svg.call(zoom as any)
 	.on("dblclick.zoom", null);
 
-function onAddNode(formData: FindWidgetFormData) {
-	console.log("add", formData);
+function onAddNode(findFormData: FindWidgetFormData) {
+	console.log("add", findFormData);
+	const components = d3.selectAll(".d3-hwschematic rect");
+	
+	if (findFormData.searchValue === null || findFormData.searchValue === undefined 
+		|| findFormData.searchValue === '') {
+        return;
+	}
+
+	let matchPredicate: (item: any) => boolean;
+    if (findFormData.idOrName == "Id") {
+        const _searchValues = findFormData.searchValue.split(",").map((x)=>x.trim());
+        const searchValues = new Set(_searchValues.map((x) => parseInt(x)));
+        matchPredicate = (item: any) => searchValues.has(parseInt(item?.id));
+    } else {
+        const searchValue = findFormData.searchValue;
+        const casesens = findFormData.searchCaseSensitive;
+        if (findFormData.searchRegex) {
+            const r = new RegExp(searchValue, casesens ? 'i' : undefined);
+            matchPredicate = (item: any) => r.test(item?.tooltip);
+        } else {
+            if (casesens) {
+                matchPredicate = (item: any) => item?.tooltip === searchValue;
+            } else {
+                matchPredicate = (item: any) => searchValue.localeCompare(item.tooltip, undefined, { sensitivity: 'base' }) === 0;
+            }
+        }
+    }
+
+	const data = components.data();
+	let index = 0;
+	for (const htmlItem of components) {
+        if (htmlItem !== undefined && data[index] !== undefined && matchPredicate(data[index])) {
+            findFormData.getCheckedSearchHistoryItem()?.addItem(htmlItem);
+        }
+		++index;
+    }
+
+	console.log(d3);
 }
 function onAddPath(formData: FindWidgetFormData) {
 	console.log("add", formData);
 }
 function onClearSelection() {
 	console.log("clear selection");
+	const components = d3.selectAll(".d3-hwschematic rect");
+	for(const htmlIItem of components) {
+		if (htmlIItem !== null) {
+			const item = htmlIItem as HTMLElement;
+			item.style.opacity = "1";
+		}
+	}
+	
 }
 
 const findWidgetFormState = new FindWidgetFormData();
