@@ -21,6 +21,8 @@ zoom.on("zoom", function applyTransform(ev) {
 svg.call(zoom as any)
 	.on("dblclick.zoom", null);
 
+// On add node clicking adds a node corresponding to the form input into an existing group 
+// When tying to add a node not existing in the hwschematic file nothing happens.
 function onAddNode(findFormData: FindWidgetFormData) {
 	console.log("add", findFormData);
 	const components = d3.selectAll(".d3-hwschematic rect");

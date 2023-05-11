@@ -2,10 +2,13 @@
  * This code contains main API for FindWidget which is used to bind button callbacks to the form from the aplication which is using this form.
  */
 import { provideVSCodeDesignSystem, vsCodeButton, vsCodeCheckbox, vsCodePanels, vsCodePanelTab, vsCodePanelView, vsCodeRadio, vsCodeRadioGroup, vsCodeTextField } from "@vscode/webview-ui-toolkit";
-import { TimelineItemData } from 'd3-hwschedulinggraphs/dist/data';
+//import { TimelineItemData } from 'd3-hwschedulinggraphs/dist/data';
+import { TimelineItemData } from '../../node_modules/d3-hwschedulinggraphs/dist/data';
+
 import { addTimelineItemsLeft, addTimelineItemsRight } from "./hwschedulingFindWidget";
 import d3, { tickFormat } from "d3";
 
+// Represents a group with elements to be highlighted on clicking the checkbox.
 class HighlightGroup {
 	name: string;
 	findWidgetFormState: FindWidgetFormData;
@@ -22,6 +25,7 @@ class HighlightGroup {
 		this.CheckboxChecked = true;
 	}
 
+	// Checks the radio button after clicking.
 	checkItem(): void {
 		for (const item of this.findWidgetFormState.highlightGroups) {
 			item.RadioChecked = false;
@@ -29,7 +33,8 @@ class HighlightGroup {
 		this.RadioChecked = true;
 	}
 
-	highlightItems(): void {
+	// Highlights intem of this class in hwsheduling document
+	highlightItemsHwScheduling(): void {
 		const timeline = this.findWidgetFormState.timeline;
 		if (timeline === null) {
 			console.log("Timeline is null");
@@ -42,6 +47,7 @@ class HighlightGroup {
 
 	}
 
+	// Highlights items of this class in hwschematic document
 	highlightItemsHwSchematic(): void {
 		for (const item of this.items) {
 			this.findWidgetFormState.currentlySelected.add(item);
@@ -68,6 +74,7 @@ class HighlightGroup {
 
 	}
 
+	// Hides items of this class in hwshematic document
 	hideItemsHwSchematic(): void {
 		for (const item of this.items) {
 			this.findWidgetFormState.currentlySelected.delete(item);
@@ -93,7 +100,8 @@ class HighlightGroup {
 		}
 	}
 
-	hideItems(): void {
+	// Hides items belonging to this class in hwsheduling document
+	hideItemsHwScheduling(): void {
 		const timeline = this.findWidgetFormState.timeline;
 		if (timeline === null) {
 			console.log("Timeline is null");
@@ -105,6 +113,7 @@ class HighlightGroup {
 		timeline.applyHighlight();
 	}
 
+	// Renders a radio buttun. On selection for input is added to the existing group.
 	renderRadio(newRow: HTMLTableRowElement): void {
 		const col = newRow.insertCell();
 		const radio = document.createElement("input") as HTMLInputElement;
@@ -116,6 +125,7 @@ class HighlightGroup {
 		col.appendChild(radio);
 	}
 
+	// Renders checkbox which highlights items belonging to the group
 	renderCheckbox(newRow: HTMLTableRowElement): void {
 		const col = newRow.insertCell();
 		const checkbox = document.createElement("vscode-checkbox") as HTMLInputElement;
@@ -125,13 +135,13 @@ class HighlightGroup {
 		checkbox.onchange = () => {
 			if (checkbox.checked) {
 				this.CheckboxChecked = true;
-				this.highlightItems();
+				this.highlightItemsHwScheduling();
 				if (this.findWidgetFormState.timeline === null) {
 					this.highlightItemsHwSchematic();
 				}
 			} else {
 				this.CheckboxChecked = false;
-				this.hideItems();
+				this.hideItemsHwScheduling();
 				if (this.findWidgetFormState.timeline === null) {
 					this.hideItemsHwSchematic();
 				}
@@ -142,6 +152,7 @@ class HighlightGroup {
 		col.appendChild(checkbox);
 	}
 
+	// Renders input button for changing the name of the class
 	renderInput(newRow: HTMLTableRowElement): void {
 		//creates input/span for group label
 		const col2 = newRow.insertCell();
@@ -165,6 +176,7 @@ class HighlightGroup {
 		col2.appendChild(span);
 	}
 
+	// Renders deleting button which deletes an added group
 	renderDeletingButton(newRow: HTMLTableRowElement, onDeleteClick: (ev: MouseEvent) => any): void {
 		const col3 = newRow.insertCell();
 		const button = document.createElement("button");
@@ -174,6 +186,7 @@ class HighlightGroup {
 		col3.appendChild(button);
 	}
 
+	// Renders a default table row after clicking on add button
 	renderRow(document: Document, table: HTMLTableElement, onDeleteClick: (ev: MouseEvent) => any, onClearSelection: any): void {
 		const newRow = table.insertRow();
 
@@ -183,6 +196,7 @@ class HighlightGroup {
 		this.renderDeletingButton(newRow, onDeleteClick);
 	}
 
+	// Adds an item to the object items.
 	addItem(item: any): void {
 		this.items.add(item);
 	}
@@ -275,6 +289,8 @@ export function initializeFindWidget(document: Document,
 	const widget = document.getElementById("findWidget") as HTMLFormElement;
 	const mainInputField = widget.querySelector("[name=searchValue]");
 
+	// Renders highlight groups storing items to be highlighted 
+	// when selecting the corresponding checkbox
 	function renderHighlightGroups(document: Document, highlightGroups: HighlightGroup[]) {
 
 		const table = document.querySelector('.history-table') as HTMLTableElement;
@@ -330,7 +346,7 @@ export function initializeFindWidget(document: Document,
 		onAddNode(findWidgetFormState);
 		const curSelectedGroup = findWidgetFormState.getCheckedSearchHistoryItem();
 		if (curSelectedGroup?.CheckboxChecked) {
-			curSelectedGroup?.highlightItems();
+			curSelectedGroup?.highlightItemsHwScheduling();
 			if (findWidgetFormState.timeline === null) {
 				curSelectedGroup?.highlightItemsHwSchematic();
 			}
