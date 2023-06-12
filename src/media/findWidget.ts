@@ -34,83 +34,19 @@ class HighlightGroup {
 	}
 
 	// Highlights intem of this class in hwsheduling document
-	highlightItemsHwScheduling(): void {
-		const timeline = this.findWidgetFormState.timeline;
-		if (timeline === null) {
-			console.log("Timeline is null");
-			return;
-		}
+	applyHighlight(): void {
 		for (const item of this.items) {
-			timeline.currentlySelected.add(item);
+			this.findWidgetFormState.getCurrentlySelected().add(item);
 		}
-		timeline.applyHighlight();
-
+		this.findWidgetFormState.applyHighlight();
 	}
 
-	// Highlights items of this class in hwschematic document
-	highlightItemsHwSchematic(): void {
-		for (const item of this.items) {
-			this.findWidgetFormState.currentlySelected.add(item);
-		}
-
-		const components = d3.selectAll(".d3-hwschematic rect");
-		for (const htmlIItem of components) {
-			if (htmlIItem !== null) {
-				const item = htmlIItem as HTMLElement;
-				item.style.opacity = "1";
-			}
-		}
-
-		if (this.findWidgetFormState.currentlySelected.size === 0) {
-			return;
-		}
-
-		for (const htmlIItem of components) {
-			if (htmlIItem !== null && !this.findWidgetFormState.currentlySelected.has(htmlIItem)) {
-				const item = htmlIItem as HTMLElement;
-				item.style.opacity = "0.1";
-			}
-		}
-
-	}
-
-	// Hides items of this class in hwshematic document
-	hideItemsHwSchematic(): void {
-		for (const item of this.items) {
-			this.findWidgetFormState.currentlySelected.delete(item);
-		}
-
-		const components = d3.selectAll(".d3-hwschematic rect");
-		for (const htmlIItem of components) {
-			if (htmlIItem !== null) {
-				const item = htmlIItem as HTMLElement;
-				item.style.opacity = "1";
-			}
-		}
-
-		if (this.findWidgetFormState.currentlySelected.size === 0) {
-			return;
-		}
-
-		for (const htmlIItem of components) {
-			if (htmlIItem !== null && !this.findWidgetFormState.currentlySelected.has(htmlIItem)) {
-				const item = htmlIItem as HTMLElement;
-				item.style.opacity = "0.1";
-			}
-		}
-	}
-
-	// Hides items belonging to this class in hwsheduling document
-	hideItemsHwScheduling(): void {
-		const timeline = this.findWidgetFormState.timeline;
-		if (timeline === null) {
-			console.log("Timeline is null");
-			return;
-		}
+	hideHighlight(): void {
 		for (const node of this.items) {
-			timeline.currentlySelected.delete(node);
+			this.findWidgetFormState.getCurrentlySelected().delete(node);
 		}
-		timeline.applyHighlight();
+		this.findWidgetFormState.applyHighlight();
+
 	}
 
 	// Renders a radio buttun. On selection for input is added to the existing group.
@@ -133,19 +69,14 @@ class HighlightGroup {
 
 		checkbox.checked = this.CheckboxChecked;
 		checkbox.onchange = () => {
-			if (checkbox.checked) {
-				this.CheckboxChecked = true;
-				this.highlightItemsHwScheduling();
-				if (this.findWidgetFormState.timeline === null) {
-					this.highlightItemsHwSchematic();
-				}
+			this.CheckboxChecked = checkbox.checked;
+			if (this.CheckboxChecked) {
+				this.applyHighlight();
 			} else {
-				this.CheckboxChecked = false;
-				this.hideItemsHwScheduling();
-				if (this.findWidgetFormState.timeline === null) {
-					this.hideItemsHwSchematic();
-				}
+				this.hideHighlight();
+
 			}
+
 		};
 
 		checkbox.checked = this.CheckboxChecked;
@@ -211,14 +142,15 @@ export class FindWidgetFormData {
 	distance: number; // distance to search to
 	directionRight: boolean; // true if right direction is selected
 	directionLeft: boolean; // true if left direction is selected
-	currentlySelected: Set<any>;
+	getCurrentlySelected: () => Set<any>;
+	applyHighlight: () => void;
 	/* Path */
 	sourceId: number; // source node id
 	destId: number; // destination node id
 	searchMethod: string; // All or BFS or DFS
 	highlightGroups: HighlightGroup[]; // List of groups, which items are highlighted
-	timeline: any | null;
-	constructor() {
+	
+	constructor(getCurrentlySelected: () => Set<any>, applyHighlight: () => void) {
 		/* Node */
 		this.searchValue = "";
 		this.searchRegex = false;
@@ -237,8 +169,8 @@ export class FindWidgetFormData {
 		defaultGroup.RadioChecked = true;
 		this.highlightGroups = [defaultGroup];
 
-		this.timeline = null;
-		this.currentlySelected = new Set<any>;
+		this.getCurrentlySelected = getCurrentlySelected;
+		this.applyHighlight = applyHighlight;
 
 	}
 	update(data: any) {
@@ -313,8 +245,6 @@ export function initializeFindWidget(document: Document,
 			item.renderRow(document, table, onDeleteClick, onClearSelection);
 		}
 
-
-		console.log("__________breakpoint ______________");
 	}
 	function widgetControl(e: KeyboardEvent) {
 		if (!widget) return;
@@ -346,10 +276,7 @@ export function initializeFindWidget(document: Document,
 		onAddNode(findWidgetFormState);
 		const curSelectedGroup = findWidgetFormState.getCheckedSearchHistoryItem();
 		if (curSelectedGroup?.CheckboxChecked) {
-			curSelectedGroup?.highlightItemsHwScheduling();
-			if (findWidgetFormState.timeline === null) {
-				curSelectedGroup?.highlightItemsHwSchematic();
-			}
+			curSelectedGroup?.applyHighlight();
 		}
 	};
 	(window as any).digitalCircuitAnalysisOnFindWidgetOnClearSelection = () => {

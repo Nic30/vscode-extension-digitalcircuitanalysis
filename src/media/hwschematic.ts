@@ -6,6 +6,9 @@ import { setupRootSvgOnResize } from './setupRootSvgOnResize';
 export declare const vscode: _vscode;
 import { initializeFindWidget, FindWidgetFormData } from './findWidget';
 import { assert } from 'console';
+import { resourceLimits } from 'worker_threads';
+
+import * as vscode1 from 'vscode';
 
 const svg = d3.select("#scheme-placeholder");
 
@@ -21,12 +24,54 @@ zoom.on("zoom", function applyTransform(ev) {
 svg.call(zoom as any)
 	.on("dblclick.zoom", null);
 
+
+function processPort(port: any, matchPredicate: any, result: any) {
+	if (matchPredicate(port)) {
+		result.push(port);
+	}
+
+	const children: any[] = port.children || port._children || [];
+
+	for (const child of children) {
+		processPort(child, matchPredicate, result);
+	}
+
+}
+
+function processNode(node: any, matchPredicate: any, result: any) {
+	if (matchPredicate(node)) {
+		result.push(node);
+	}
+
+	const children: any[] = node.children || node._children || [];
+	const ports: any[] = node.ports || node._ports || [];
+	const edges: any[] = node.edges || node._edges || [];
+
+	for(const child of children) {
+		processNode(child, matchPredicate, result);
+	}
+
+	for(const port of ports) {
+		processPort(port, matchPredicate, result);
+	}
+
+	for(const edge of edges) {
+		if (matchPredicate(edge)) {
+			result.push(edge);
+		}
+	}
+}
+
+function getElementsToAdd(graph: any, matchPredicate: any): any[] {
+	const result: any[] = [];
+	processNode(graph, matchPredicate, result);
+	return result;
+}
+
 // On add node clicking adds a node corresponding to the form input into an existing group 
 // When tying to add a node not existing in the hwschematic file nothing happens.
 function onAddNode(findFormData: FindWidgetFormData) {
-	console.log("add", findFormData);
-	const components = d3.selectAll(".d3-hwschematic rect");
-	
+	console.log("add", findFormData);	
 	if (findFormData.searchValue === null || findFormData.searchValue === undefined 
 		|| findFormData.searchValue === '') {
         return;
@@ -51,34 +96,54 @@ function onAddNode(findFormData: FindWidgetFormData) {
             }
         }
     }
-
-	const data = components.data();
-	let index = 0;
-	for (const htmlItem of components) {
-        if (htmlItem !== undefined && data[index] !== undefined && matchPredicate(data[index])) {
-            findFormData.getCheckedSearchHistoryItem()?.addItem(htmlItem);
-        }
-		++index;
-    }
-
-	console.log(d3);
+	
+	const elementsToAdd: any[] = getElementsToAdd(hwSchematic.layouter.graph, matchPredicate);
+	const searchHistoryItem = findFormData.getCheckedSearchHistoryItem();
+	if (searchHistoryItem !== null && searchHistoryItem !== undefined) {
+		elementsToAdd.forEach(element => {
+			searchHistoryItem.addItem(element);
+		});
+	}
+	
 }
 function onAddPath(formData: FindWidgetFormData) {
 	console.log("add", formData);
 }
-function onClearSelection() {
-	console.log("clear selection");
-	const components = d3.selectAll(".d3-hwschematic rect");
-	for(const htmlIItem of components) {
-		if (htmlIItem !== null) {
-			const item = htmlIItem as HTMLElement;
-			item.style.opacity = "1";
+
+
+const currentlySelected = new Set<any>();
+
+function applyHighlight() { 
+	const nodes: any[] = getElementsToAdd(hwSchematic.layouter.graph, (item: any) => true);
+	nodes.forEach((node: any) => {
+		if (currentlySelected.size > 0 && !currentlySelected.has(node)) {
+			node.hwMeta.cssClass = "unhighlighted";
+		} else {
+			node.hwMeta.cssClass = "";
 		}
+		
+	});
+
+	const externalNode = d3.selectAll(".d3-hwschematic .node-external-port rect");
+	const node = d3.selectAll(".d3-hwschematic .node rect");
+	for (const components of [externalNode, node]) {
+		components.classed("unhighlighted", (d: any) => {
+			return d.hwMeta.cssClass.includes("unhighlighted");
+		});
 	}
-	
 }
 
-const findWidgetFormState = new FindWidgetFormData();
+
+
+function onClearSelection() {
+	currentlySelected.clear();
+	applyHighlight();
+}
+
+const findWidgetFormState = new FindWidgetFormData(
+	() => currentlySelected,
+	applyHighlight);
+
 initializeFindWidget(document, onAddNode, onAddPath, onClearSelection, findWidgetFormState);
 
 
@@ -97,7 +162,7 @@ function updateContent(text: string) {
 		return;
 	}
 	hwSchematic.bindData(json).then(
-		() => {},
+		function () { return; },
 		(e: any) => {
 			hwSchematic.setErrorText(e);
 			throw e;

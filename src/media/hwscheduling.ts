@@ -20,7 +20,6 @@ errorContainer.style.display = 'none';
  * Add the selected items to the selection of the timeline.
  */
 function findWidgetOnAddNode(findFormData: FindWidgetFormData) {
-    findFormData.timeline = timeline;
     const bars = d3.selectAll(".hwscheduling-timeline-graph rect");
     if (findFormData.searchValue === "" || timeline === null)
         return;
@@ -78,7 +77,8 @@ function findWidgetOnAddPath(findFormData: FindWidgetFormData) {
     throw new Error("Not implemented");
 }
 
-const findWidgetFormState = new FindWidgetFormData();
+const findWidgetFormState = new FindWidgetFormData(() => timeline.currentlySelected,
+                                                   () => timeline.applyHighlight());
 
 initializeFindWidget(document, findWidgetOnAddNode, findWidgetOnAddPath, 
                      findWidgetOnClearSelection, findWidgetFormState);
