@@ -9,7 +9,7 @@ import { addTimelineItemsLeft, addTimelineItemsRight } from "./hwschedulingFindW
 import d3, { tickFormat } from "d3";
 
 // Represents a group with elements to be highlighted on clicking the checkbox.
-class HighlightGroup {
+export class HighlightGroup {
 	name: string;
 	findWidgetFormState: FindWidgetFormData;
 	items: Set<TimelineItemData | any>;
@@ -38,14 +38,14 @@ class HighlightGroup {
 		for (const item of this.items) {
 			this.findWidgetFormState.getCurrentlySelected().add(item);
 		}
-		this.findWidgetFormState.applyHighlight();
+		this.findWidgetFormState.applyHighlight(true);
 	}
 
 	hideHighlight(): void {
 		for (const node of this.items) {
 			this.findWidgetFormState.getCurrentlySelected().delete(node);
 		}
-		this.findWidgetFormState.applyHighlight();
+		this.findWidgetFormState.applyHighlight(true);
 
 	}
 
@@ -143,14 +143,14 @@ export class FindWidgetFormData {
 	directionRight: boolean; // true if right direction is selected
 	directionLeft: boolean; // true if left direction is selected
 	getCurrentlySelected: () => Set<any>;
-	applyHighlight: () => void;
+	applyHighlight: (sendHighlightMessage: boolean) => void;
 	/* Path */
 	sourceId: number; // source node id
 	destId: number; // destination node id
 	searchMethod: string; // All or BFS or DFS
 	highlightGroups: HighlightGroup[]; // List of groups, which items are highlighted
 	
-	constructor(getCurrentlySelected: () => Set<any>, applyHighlight: () => void) {
+	constructor(getCurrentlySelected: () => Set<any>, applyHighlight: (sendHighlightMessage: boolean) => void) {
 		/* Node */
 		this.searchValue = "";
 		this.searchRegex = false;
@@ -203,6 +203,10 @@ export class FindWidgetFormData {
 			}
 		}
 		return null;
+	}
+
+	getHighlightGroups(): HighlightGroup[] {
+		return this.highlightGroups;
 	}
 }
 

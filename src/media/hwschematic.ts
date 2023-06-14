@@ -4,7 +4,7 @@ import * as d3 from 'd3';
 import { _vscode } from './vscodePlaceholder';
 import { setupRootSvgOnResize } from './setupRootSvgOnResize';
 export declare const vscode: _vscode;
-import { initializeFindWidget, FindWidgetFormData } from './findWidget';
+import { initializeFindWidget, FindWidgetFormData, HighlightGroup } from './findWidget';
 import { assert } from 'console';
 import { resourceLimits } from 'worker_threads';
 
@@ -113,31 +113,49 @@ function onAddPath(formData: FindWidgetFormData) {
 
 const currentlySelected = new Set<any>();
 
-function applyHighlight() { 
+function applyHighlight(sendHighlightMessage: boolean) { 
 	const nodes: any[] = getElementsToAdd(hwSchematic.layouter.graph, (item: any) => true);
+	const highlighted: any = [];
+	const unhighlighted: any = [];
 	nodes.forEach((node: any) => {
 		if (currentlySelected.size > 0 && !currentlySelected.has(node)) {
 			node.hwMeta.cssClass = "unhighlighted";
+			unhighlighted.push(node.id);
 		} else {
 			node.hwMeta.cssClass = "";
+			highlighted.push(node.id);
 		}
 		
 	});
 
-	const externalNode = d3.selectAll(".d3-hwschematic .node-external-port rect");
-	const node = d3.selectAll(".d3-hwschematic .node rect");
+	const externalNode = d3.selectAll(".d3-hwschematic .node-external-port");
+	const node = d3.selectAll(".d3-hwschematic .node");
 	for (const components of [externalNode, node]) {
 		components.classed("unhighlighted", (d: any) => {
 			return d.hwMeta.cssClass.includes("unhighlighted");
 		});
 	}
+
+	//write changes to state json
+	if (sendHighlightMessage) {
+		const decoder = new TextDecoder();
+		//const text = decoder.decode(vscode.getState().text.value);
+		vscode.postMessage({
+			type: 'highlight',
+			change: {
+				highlighted: highlighted,
+				unhighlighted: unhighlighted
+			}
+		});
+	}
+	
 }
 
 
 
 function onClearSelection() {
 	currentlySelected.clear();
-	applyHighlight();
+	applyHighlight(true);
 }
 
 const findWidgetFormState = new FindWidgetFormData(
@@ -146,43 +164,175 @@ const findWidgetFormState = new FindWidgetFormData(
 
 initializeFindWidget(document, onAddNode, onAddPath, onClearSelection, findWidgetFormState);
 
+function getCurrentlySelectedIds(highlightGroups: any): Set<string> {
+	const currentlySelectedIds: Set<string> = new Set();
 
-/**
- * Render the document in the webview.
- */
-function updateContent(text: string) {
-	let json;
-	try {
-		if (!text) {
-			text = '{}';
+	for (const highlightGroup of highlightGroups) {
+		if (highlightGroup.isSelected) {
+			for (const id of highlightGroup.members) {
+			currentlySelectedIds.add(id);
+			}
 		}
-		json = JSON.parse(text);
-	} catch {
-		hwSchematic.setErrorText('Error: Document is not valid json');
-		return;
 	}
+
+	return currentlySelectedIds;
+}
+
+function addHighlightGroups(nodes: any, highlightGroups: any) {
+	findWidgetFormState.highlightGroups = [];
+	//findWidgetFormState.addToHighlightGroups("GROUP");
+
+	for (const highlightGroup of highlightGroups) {
+		const newHighlightGroup = new HighlightGroup(highlightGroup.name, findWidgetFormState);
+		newHighlightGroup.CheckboxChecked = highlightGroup.isSelected;
+		const membersSet = new Set(highlightGroup.members);
+
+		for (const node of nodes) {
+			if (membersSet.has(node.id)){
+				newHighlightGroup.addItem(node);
+			}
+		}
+		findWidgetFormState.highlightGroups.push(newHighlightGroup);
+	}
+}
+
+function updateContent(json: any, eventType: string) {
+	// funkcia ktora prepise groupy v json do jeho properties do root hwMeta //selection groups
+	// zo selection groups v json zostavime selection groups, zavolame apply highlight? a vykresli sa
+	// do selection groups v jason dame komponenty z objektu, ktory mame
+
+	// vysypeme currently selectcted, zo selection groups v documente pridame currently seleceted,
+	// dame apply highlight
+	// Predtym musime niekde z findWidget form data dat to jsonu highlight groups kopiu
+
+	// if (json.hwMeta.highlightGroups !== undefined && json.hwMeta.highlightGroups !== null) {
+	// 	currentlySelected.clear();
+	// 	for (const highlightGroup of json.hwMeta.highlightGroups) {
+	// 		if (highlightGroup.CheckboxChecked) {
+	// 			for (const item of highlightGroup.items) {
+	// 				currentlySelected.add(item);
+	// 			}
+	// 		}
+	// 	}
+	// 	applyHighlight();
+	// }
+
 	hwSchematic.bindData(json).then(
 		function () { return; },
 		(e: any) => {
 			hwSchematic.setErrorText(e);
 			throw e;
 		});
+
+		// if (json.hwMeta.highlightGroups !== undefined && json.hwMeta.highlightGroups !== null) {
+		// 	const nodes: any[] = getElementsToAdd(hwSchematic.layouter.graph, (item: any) => true);
+		// 	const currentlySelectedIds = new Set();
+		// 	for () {
+
+		// 	}
+		
+		// }
+
+		if ((eventType == "init" || eventType == "") && json.hwMeta.highlightGroups !== undefined && json.hwMeta.highlightGroups !== null) {
+			currentlySelected.clear();
+			const nodes: any[] = getElementsToAdd(hwSchematic.layouter.graph, (item: any) => true);
+			const currentlySelectedIds = getCurrentlySelectedIds(json.hwMeta.highlightGroups);
+
+			for (const node of nodes) {
+				if (currentlySelectedIds.has(node.id)) {
+					currentlySelected.add(node);
+				}
+			}
+			applyHighlight(false);
+			addHighlightGroups(nodes, json.hwMeta.highlightGroups);
+		}
+
+	
+
+
+
+}
+
+/*
+ Checks two object for equality (recursively)
+*/
+function isDeepEqual(object1: any, object2: any) {
+	const objKeys1 = Object.keys(object1);
+	const objKeys2 = Object.keys(object2);
+
+	if (objKeys1.length !== objKeys2.length) return false;
+
+	for (const key of objKeys1) {
+		const value1 = object1[key];
+		const value2 = object2[key];
+
+		const isObjects = isObject(value1) && isObject(value2);
+
+		if ((isObjects && !isDeepEqual(value1, value2)) ||
+			(!isObjects && value1 !== value2)
+		) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function isObject(object: any) {
+	return object != null && typeof object === "object";
 }
 
 // Handle messages sent from the extension to the webview
 window.addEventListener('message', (event) => {
-	const message = event.data; // The json data that the extension sent
-	switch (message.type) {
+	const {type, body} = event.data;
+	switch (type) {
+		case 'init':
 		case 'update': {
-			const text = message.text;
+			const textBytes = body.json;
+			const decoder = new TextDecoder();
+			const text = decoder.decode(textBytes);
+			let json: any = {};
+			try {
+				json = JSON.parse(text);
+			} catch {
+				if (hwSchematic)
+					hwSchematic.setErrorText('Error: Document is not valid json');
+			}
+
 			const state = vscode.getState();
-			if (!state || state.text != text) {
+			if (!state || isDeepEqual(state.json, json)) {
 				// Update our webview's content
-				updateContent(text);
+				// copy json for updateContent because it modifies it
+				updateContent(JSON.parse(JSON.stringify(json)), type);
+				//json.hwMeta.highlightGroups = findWidgetFormState.getHighlightGroups();
+
 			}
 			// Then persist state information.
 			// This state is returned in the call to `vscode.getState` below when a webview is reloaded.
-			vscode.setState({ text });
+			vscode.setState({ json: json });
+			return;
+		}
+
+		case 'getFileData':
+		{
+			// Get the image data for the canvas and post it back to the extension.
+			//const json = hwSchematic === null ? {} :  hwSchematic.layouter.graph;
+			const {requestId, body} = event.data;
+			// const text = decoder.decode(vscode.getState().text.value);
+			const json = vscode.getState().json;
+			const groups : any[] = []; 
+			json.hwMeta.highlightGroups = groups;
+			for (const g of findWidgetFormState.getHighlightGroups()) {
+				const members: string[] = [];
+				for (const item of g.items) {
+					members.push(item.id);
+				}
+				groups.push({
+					name: g.name,
+					members: members,
+					isSelected: g.CheckboxChecked
+				});
+			}
+			vscode.postMessage({ type: 'getFileDataResponse', requestId, body: json});
 			return;
 		}
 	}
@@ -192,5 +342,7 @@ window.addEventListener('message', (event) => {
 // State lets us save information across these re-loads
 const state = vscode.getState();
 if (state) {
-	updateContent(state.text);
+	updateContent(state.json, "");
+
 }
+vscode.postMessage({ type: 'ready' });
