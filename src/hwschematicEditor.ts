@@ -98,7 +98,7 @@ export class HwSchematicEditorProvider implements vscode.CustomEditorProvider<Hw
 	private onMessage(document: HwSchematicDocument, message: any) {
 		switch (message.type) {
 			case 'highlight':
-				document.makeEdit(message.change as HwSchematicHighlightEdit);
+				document.makeEdit(message.edit as HwSchematicHighlightEdit);
 				return;
 
 			case 'getFileDataResponse': {
@@ -153,7 +153,7 @@ export class HwSchematicEditorProvider implements vscode.CustomEditorProvider<Hw
 			for (const webviewPanel of this.webviews.get(document.uri)) {
 				this.postMessage(webviewPanel, 'update', {
 					edits: e.edits,
-					content: e.content,
+					change: e.change,
 				});
 			}
 		}));

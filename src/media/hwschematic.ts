@@ -68,6 +68,7 @@ function getElementsToAdd(graph: any, matchPredicate: any): any[] {
 	return result;
 }
 
+
 // On add node clicking adds a node corresponding to the form input into an existing group 
 // When tying to add a node not existing in the hwschematic file nothing happens.
 function onAddNode(findFormData: FindWidgetFormData) {
@@ -97,13 +98,31 @@ function onAddNode(findFormData: FindWidgetFormData) {
         }
     }
 	
+	const change: string[] = [];
 	const elementsToAdd: any[] = getElementsToAdd(hwSchematic.layouter.graph, matchPredicate);
 	const searchHistoryItem = findFormData.getCheckedSearchHistoryItem();
 	if (searchHistoryItem !== null && searchHistoryItem !== undefined) {
 		elementsToAdd.forEach(element => {
 			searchHistoryItem.addItem(element);
+			change.push(element.id);
 		});
 	}
+
+
+	const highlightGroup = findWidgetFormState.getCheckedSearchHistoryItem();
+	if (!highlightGroup) {
+		return;
+	}
+	
+	vscode.postMessage({
+		type: 'highlight',
+		edit: {
+			index: findWidgetFormState.highlightGroups.indexOf(highlightGroup),
+			members: change,
+			isSelected: highlightGroup.CheckboxChecked,
+			isCancelled: false
+		}
+	});
 	
 }
 function onAddPath(formData: FindWidgetFormData) {
@@ -135,19 +154,6 @@ function applyHighlight(sendHighlightMessage: boolean) {
 			return d.hwMeta.cssClass.includes("unhighlighted");
 		});
 	}
-
-	//write changes to state json
-	if (sendHighlightMessage) {
-		const decoder = new TextDecoder();
-		//const text = decoder.decode(vscode.getState().text.value);
-		vscode.postMessage({
-			type: 'highlight',
-			change: {
-				highlighted: highlighted,
-				unhighlighted: unhighlighted
-			}
-		});
-	}
 	
 }
 
@@ -170,7 +176,7 @@ function getCurrentlySelectedIds(highlightGroups: any): Set<string> {
 	for (const highlightGroup of highlightGroups) {
 		if (highlightGroup.isSelected) {
 			for (const id of highlightGroup.members) {
-			currentlySelectedIds.add(id);
+				currentlySelectedIds.add(id);
 			}
 		}
 	}
@@ -184,7 +190,7 @@ function addHighlightGroups(nodes: any, highlightGroups: any) {
 
 	for (const highlightGroup of highlightGroups) {
 		const newHighlightGroup = new HighlightGroup(highlightGroup.name, findWidgetFormState);
-		newHighlightGroup.CheckboxChecked = highlightGroup.isSelected;
+		//newHighlightGroup.CheckboxChecked = highlightGroup.isSelected;
 		const membersSet = new Set(highlightGroup.members);
 
 		for (const node of nodes) {
@@ -197,25 +203,6 @@ function addHighlightGroups(nodes: any, highlightGroups: any) {
 }
 
 function updateContent(json: any, eventType: string) {
-	// funkcia ktora prepise groupy v json do jeho properties do root hwMeta //selection groups
-	// zo selection groups v json zostavime selection groups, zavolame apply highlight? a vykresli sa
-	// do selection groups v jason dame komponenty z objektu, ktory mame
-
-	// vysypeme currently selectcted, zo selection groups v documente pridame currently seleceted,
-	// dame apply highlight
-	// Predtym musime niekde z findWidget form data dat to jsonu highlight groups kopiu
-
-	// if (json.hwMeta.highlightGroups !== undefined && json.hwMeta.highlightGroups !== null) {
-	// 	currentlySelected.clear();
-	// 	for (const highlightGroup of json.hwMeta.highlightGroups) {
-	// 		if (highlightGroup.CheckboxChecked) {
-	// 			for (const item of highlightGroup.items) {
-	// 				currentlySelected.add(item);
-	// 			}
-	// 		}
-	// 	}
-	// 	applyHighlight();
-	// }
 
 	hwSchematic.bindData(json).then(
 		function () { return; },
@@ -223,15 +210,6 @@ function updateContent(json: any, eventType: string) {
 			hwSchematic.setErrorText(e);
 			throw e;
 		});
-
-		// if (json.hwMeta.highlightGroups !== undefined && json.hwMeta.highlightGroups !== null) {
-		// 	const nodes: any[] = getElementsToAdd(hwSchematic.layouter.graph, (item: any) => true);
-		// 	const currentlySelectedIds = new Set();
-		// 	for () {
-
-		// 	}
-		
-		// }
 
 		if ((eventType == "init" || eventType == "") && json.hwMeta.highlightGroups !== undefined && json.hwMeta.highlightGroups !== null) {
 			currentlySelected.clear();
@@ -281,12 +259,59 @@ function isObject(object: any) {
 	return object != null && typeof object === "object";
 }
 
+function handleUpdate(body: any) {
+	const edit = body.edits;
+	const change: string = body.change;
+	
+	if (!edit) {
+		return;
+	}
+
+	const membersSet = new Set(edit.members);
+		const nodes: any[] = getElementsToAdd(hwSchematic.layouter.graph, (item: any) => true);
+		const highlightGroup = findWidgetFormState.highlightGroups[edit.index];
+
+	if (change === "undo") {
+		for (const node of nodes) {
+			if (membersSet.has(node.id)) {
+				highlightGroup.items.delete(node);
+				if (edit.isSelected){
+					currentlySelected.delete(node);
+				}
+			}
+			
+		}
+	
+	} else if (change === "redo") {
+		for (const node of nodes) {
+			if (membersSet.has(node.id)) {
+				highlightGroup.items.add(node);
+				if (edit.isSelected){
+					currentlySelected.add(node);
+				}
+			}
+			
+		}
+	} else {
+		throw new Error("Unknown update change: " + change);
+	}
+
+	//highlightGroup.CheckboxChecked = edit.isSelected;
+	applyHighlight(false);
+
+	
+
+}
+
 // Handle messages sent from the extension to the webview
 window.addEventListener('message', (event) => {
 	const {type, body} = event.data;
 	switch (type) {
-		case 'init':
 		case 'update': {
+			handleUpdate( event.data.body);
+			return;
+		}
+		case 'init': {
 			const textBytes = body.json;
 			const decoder = new TextDecoder();
 			const text = decoder.decode(textBytes);

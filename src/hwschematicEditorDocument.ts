@@ -38,8 +38,10 @@ export class WebviewCollection {
 
 
 export interface HwSchematicHighlightEdit {
-	readonly highlighted:  ReadonlyArray<[string]>;
-	readonly unhiglighted: ReadonlyArray<[string]>;
+	readonly index: number;
+	readonly members: ReadonlyArray<[string]>;
+	isSelected: boolean;
+	isCancelled: boolean;
 }
 
 export interface HwSchematicDocumentDelegate {
@@ -100,7 +102,8 @@ export class HwSchematicDocument extends Disposable implements vscode.CustomDocu
 
 	private readonly _onDidChangeDocument = this._register(new vscode.EventEmitter<{
 		readonly content?: Uint8Array;
-		readonly edits: readonly HwSchematicHighlightEdit[];
+		readonly edits: HwSchematicHighlightEdit | undefined;
+		readonly change: string
 	}>());
 	/**
 	 * Fired to notify webviews that the document has changed.
@@ -140,15 +143,16 @@ export class HwSchematicDocument extends Disposable implements vscode.CustomDocu
 		this._onDidChange.fire({
 			label: 'highlightEdit',
 			undo: async () => {
-				this._edits.pop();
 				this._onDidChangeDocument.fire({
-					edits: this._edits,
+					edits: this._edits.pop(),
+					change: "undo"
 				});
 			},
 			redo: async () => {
 				this._edits.push(edit);
 				this._onDidChangeDocument.fire({
-					edits: this._edits,
+					edits: edit,
+					change: "redo"
 				});
 			}
 		});
@@ -182,7 +186,8 @@ export class HwSchematicDocument extends Disposable implements vscode.CustomDocu
 		this._edits = this._savedEdits;
 		this._onDidChangeDocument.fire({
 			content: diskContent,
-			edits: this._edits,
+			edits: this._edits.pop(),
+			change: "revert"
 		});
 	}
 
