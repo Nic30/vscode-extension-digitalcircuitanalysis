@@ -90,10 +90,10 @@
 	position: fixed;
 }
 
-.d3-hwschematic .unhighlighted {
+.d3-hwschematic > * > .unhighlighted {
 	opacity: 0.1;
 }
 
-.d3-hwschematic .highlighted {
+.d3-hwschematic > * > .highlighted {
 	opacity: 1;
 }

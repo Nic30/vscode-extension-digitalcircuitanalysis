@@ -72,7 +72,6 @@ function getElementsToAdd(graph: any, matchPredicate: any): any[] {
 // On add node clicking adds a node corresponding to the form input into an existing group 
 // When tying to add a node not existing in the hwschematic file nothing happens.
 function onAddNode(findFormData: FindWidgetFormData) {
-	console.log("add", findFormData);	
 	if (findFormData.searchValue === null || findFormData.searchValue === undefined 
 		|| findFormData.searchValue === '') {
         return;
@@ -126,7 +125,9 @@ function onAddNode(findFormData: FindWidgetFormData) {
 	
 }
 function onAddPath(formData: FindWidgetFormData) {
-	console.log("add", formData);
+	if (formData.searchMethod === "DFS") {
+		highlightPathDFS(formData.sourceId, formData.destId);
+	}
 }
 
 
@@ -149,12 +150,13 @@ function applyHighlight(sendHighlightMessage: boolean) {
 
 	const externalNode = d3.selectAll(".d3-hwschematic .node-external-port");
 	const node = d3.selectAll(".d3-hwschematic .node");
+
 	for (const components of [externalNode, node]) {
 		components.classed("unhighlighted", (d: any) => {
 			return d.hwMeta.cssClass.includes("unhighlighted");
 		});
 	}
-	
+
 }
 
 
@@ -371,3 +373,106 @@ if (state) {
 
 }
 vscode.postMessage({ type: 'ready' });
+
+
+
+function getPathFromNode(node: any, targetId: string, pathToHighlight: any[], idToObject: Map<string, any>) {
+	const parentEdges: any[] = node.hwMeta.parent.edges || node.hwMeta.parent._edges || [];
+	
+	pathToHighlight.push(node);
+
+	const toPrint = [];
+	for (const node of pathToHighlight) {
+		toPrint.push(node.id);
+	}
+	console.log(toPrint);
+
+	if (node.id === targetId) {
+		console.log("FOUND!!!");
+		return true;
+	}
+	const outputEdges: any[] = [];
+
+	const portIds: Set<string> = new Set();
+	const ports = node.ports || node._ports || [];
+
+	for (const port of ports) {
+		portIds.add(port.id);
+	}
+
+	for (const edge of parentEdges) {
+		if (portIds.has(edge.sourcePort)) {
+			outputEdges.push(edge);
+		}
+	}
+
+	const targets: any = [];
+	for (const edge of outputEdges) {
+		targets.push(idToObject.get(edge.target));
+	}
+
+
+	const children = node.children || node._children || [];
+	for (const child of children) {
+		if (pathToHighlight.includes(child) && node.hwMeta.parent.id !== child.id){
+			continue;
+		}
+		if (getPathFromNode(child, targetId, pathToHighlight, idToObject)) {
+			return true;
+		}
+	}
+
+	for (const target of targets) {
+		if (pathToHighlight.includes(target) && node.hwMeta.parent.id !== target.id){
+			continue;
+		}
+		if (getPathFromNode(target, targetId, pathToHighlight, idToObject)) {
+			return true;
+		}
+	}
+
+
+	pathToHighlight.pop();
+	return false;
+}
+
+function getPathToHighlight(sourceId: string, targetId: string, graph: any, idToObject: Map<string, any>) {
+	const pathToHighlight: any[] = [];
+
+	const node = idToObject.get(sourceId);
+
+
+	getPathFromNode(node, targetId, pathToHighlight, idToObject);
+	return pathToHighlight;
+
+}
+
+function getidToObjectDict(graph: any) {
+	const nodes: any[] = getElementsToAdd(hwSchematic.layouter.graph, (item: any) => true);
+	const idToObject = new Map<string, any>();
+
+	for (const node of nodes) {
+		const id: string = node.id;
+		idToObject.set(id, node);
+	}
+
+	return idToObject;
+}
+
+function highlightPathDFS(sourceId: string, targetId: string) {
+	currentlySelected.clear();
+
+	const idToObject = getidToObjectDict(hwSchematic.layouter.graph);
+
+
+	const pathToHighlight = getPathToHighlight(sourceId, targetId, hwSchematic.layouter.graph, idToObject);
+
+	if (pathToHighlight.length !== 0) {
+		for (const node of pathToHighlight){
+			currentlySelected.add(node);
+		}
+		applyHighlight(true);
+	}
+	
+}
+

@@ -145,8 +145,8 @@ export class FindWidgetFormData {
 	getCurrentlySelected: () => Set<any>;
 	applyHighlight: (sendHighlightMessage: boolean) => void;
 	/* Path */
-	sourceId: number; // source node id
-	destId: number; // destination node id
+	sourceId: string; // source node id
+	destId: string; // destination node id
 	searchMethod: string; // All or BFS or DFS
 	highlightGroups: HighlightGroup[]; // List of groups, which items are highlighted
 	
@@ -161,8 +161,8 @@ export class FindWidgetFormData {
 		this.directionLeft = true;
 
 		/* Path */
-		this.sourceId = 0;
-		this.destId = 0;
+		this.sourceId = "0";
+		this.destId = "0";
 		this.searchMethod = "bfs";
 
 		const defaultGroup = new HighlightGroup("default", this);
@@ -187,8 +187,8 @@ export class FindWidgetFormData {
 		this.directionLeft = data.directionLeft === "on";
 
 		/* Path */
-		this.sourceId = parseInt(data.sourceId);
-		this.destId = parseInt(data.destId);
+		this.sourceId = data.sourceID;
+		this.destId = data.destID;
 		this.searchMethod = data.searchMethod;
 
 	}
