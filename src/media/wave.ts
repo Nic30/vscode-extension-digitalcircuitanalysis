@@ -1,6 +1,4 @@
 import * as d3 from 'd3';
-//import { HwSchedulingTimelineGraph } from 'd3-hwschedulinggraphs';
-//const HwSchedulingTimelineGraph = d3.HwSchedulingTimelineGraph;
 import { _vscode } from './vscodePlaceholder';
 import { VcdParser } from './vcdParser';
 export declare const vscode: _vscode;
