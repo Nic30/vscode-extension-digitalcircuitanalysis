@@ -89,3 +89,11 @@
 	padding: 5px;
 	position: fixed;
 }
+
+.d3-hwschematic > * > .unhighlighted {
+	opacity: 0.1;
+}
+
+.d3-hwschematic > * > .highlighted {
+	opacity: 1;
+}
