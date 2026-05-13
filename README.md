@@ -22,6 +22,9 @@ The main purpose it is debugging and analysis of generated circuits.
 - `npm install`
 - `npm run watch` or `npm run build`
 - `F5` to start debugging
+- Then you can open files associated with this plugin.
+  Editors are registered for filename extension in [package.json](https://github.com/Nic30/vscode-extension-digitalcircuitanalysis/blob/main/package.json#L21)
+   
 
 ### How to debug
 * https://dzhavat.github.io/2020/11/12/easy-way-to-debug-a-webview-in-a-vscode-extension.html
