@@ -21,7 +21,7 @@ errorContainer.style.display = 'none';
  */
 function findWidgetOnAddNode(findFormData: FindWidgetFormData) {
     const bars = d3.selectAll(".hwscheduling-timeline-graph rect");
-    if (findFormData.searchValue == "" || timeline == null)
+    if (findFormData.searchValue === "" || timeline === null)
         return;
     const successorDict = timeline.idToSuccessorIds;
 
@@ -50,14 +50,17 @@ function findWidgetOnAddNode(findFormData: FindWidgetFormData) {
     for (const _item of bars.data()) {
         const item = _item as TimelineItemData;
         if (matchPredicate(item)) {
+            const items = findFormData.getCheckedSearchHistoryItem()?.items as Set<TimelineItemData>;
             if (findFormData.directionRight)
-                addTimelineItemsRight(item, d, currentlySelected, idToData, successorDict);
+                addTimelineItemsRight(item, d, items, idToData, successorDict);
             if (findFormData.directionLeft)
-                addTimelineItemsLeft(item, d, currentlySelected, idToData);
+                addTimelineItemsLeft(item, d, items, idToData);
+            
+            findFormData.getCheckedSearchHistoryItem()?.addItem(item);
         }
     }
     // Highlight the selected items
-    timeline.applyHighlight();
+    //timeline.applyHighlight();
 }
 
 /**
@@ -74,9 +77,11 @@ function findWidgetOnAddPath(findFormData: FindWidgetFormData) {
     throw new Error("Not implemented");
 }
 
+const findWidgetFormState = new FindWidgetFormData(() => timeline.currentlySelected,
+                                                   () => timeline.applyHighlight());
 
-
-initializeFindWidget(document, findWidgetOnAddNode, findWidgetOnAddPath, findWidgetOnClearSelection);
+initializeFindWidget(document, findWidgetOnAddNode, findWidgetOnAddPath, 
+                     findWidgetOnClearSelection, findWidgetFormState);
 
 /**
  * Render the document in the webview.

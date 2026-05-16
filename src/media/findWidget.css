@@ -3,4 +3,51 @@
 .overlayWidgets .icon-checked {
 	background-color: #0e639c;
 }
-;
+
+.history-table {
+	width: 100%;
+	background: darkslategrey;
+	border-collapse: collapse;
+	/* allows child elements to have borders */
+}
+
+.find-widget .history-table tbody {
+	max-height: 15rem;
+	display: block;
+	overflow: scroll;
+}
+
+.find-widget .history-table tbody::-webkit-scrollbar {
+	background-color: #262641;
+}
+
+
+.find-widget .history-table tr {
+	border-bottom: 1px solid navajowhite;
+	cursor: pointer;
+}
+
+.find-widget .history-table td:nth-child(1) {
+	width: 2.5rem;
+}
+
+.find-widget .history-table td:nth-child(2) {
+	width: 2.5rem;
+}
+
+
+.find-widget .history-table td:nth-child(3) {
+	padding-left: 0.25rem;
+	width: 100%;
+}
+
+.find-widget .history-table td:nth-child(4) {
+	padding-left: 0.25rem;
+	width: 2.5rem;
+}
+
+.find-widget .history-table tr button {
+	background: darkslategrey;
+	outline: none;
+	color: red;
+}
